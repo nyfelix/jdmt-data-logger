@@ -34,6 +34,8 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
+#include <Wire.h>
+#include <SI7021.h>
 
 // LoRaWAN NwkSKey, network session key
 // This is the default Semtech key, which is used by the early prototype TTN
@@ -58,7 +60,7 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 60;
+const unsigned TX_INTERVAL = 30;
 
 const lmic_pinmap lmic_pins = {
     .nss = 8,
@@ -67,11 +69,14 @@ const lmic_pinmap lmic_pins = {
     .dio = {7, 9, LMIC_UNUSED_PIN},
 };
 
+SI7021 envSensor;
+
+
 void onEvent (ev_t ev) {
     Serial.print(os_getTime());
     Serial.print(": ");
     switch(ev) {
-        case EV_SCAN_TIMEOUT:
+        /*case EV_SCAN_TIMEOUT:
             Serial.println(F("EV_SCAN_TIMEOUT"));
             break;
         case EV_BEACON_FOUND:
@@ -97,20 +102,20 @@ void onEvent (ev_t ev) {
             break;
         case EV_REJOIN_FAILED:
             Serial.println(F("EV_REJOIN_FAILED"));
-            break;
+            break;*/
         case EV_TXCOMPLETE:
             Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
-            if (LMIC.txrxFlags & TXRX_ACK)
+            /*if (LMIC.txrxFlags & TXRX_ACK)
               Serial.println(F("Received ack"));
             if (LMIC.dataLen) {
               Serial.println(F("Received "));
               Serial.println(LMIC.dataLen);
               Serial.println(F(" bytes of payload"));
-            }
+            }*/
             // Schedule next transmission
             os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
             break;
-        case EV_LOST_TSYNC:
+        /*case EV_LOST_TSYNC:
             Serial.println(F("EV_LOST_TSYNC"));
             break;
         case EV_RESET:
@@ -128,31 +133,37 @@ void onEvent (ev_t ev) {
             break;
          default:
             Serial.println(F("Unknown event"));
-            break;
+            break;*/
     }
 }
 
 void do_send(osjob_t* j){
-
     // Check if there is not a current TX/RX job running
-
     if (LMIC.opmode & OP_TXRXPEND) {
-        Serial.println(F("OP_TXRXPEND, not sending"));
+        //Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
 
         // Prepare upstream data transmission at the next possible time.
         #define VBATPIN A9
-        float measuredvbat = analogRead(VBATPIN);
+        // Read senser values
+        float vbat = analogRead(VBATPIN);
         measuredvbat *= 2;    // we divided by 2, so multiply back
         measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
         measuredvbat /= 1024; // convert to voltage
-        byte buffer[8];
-        dtostrf(measuredvbat, 1, 2, buffer);
+        measuredvbat = 1.0*(rand()%100) / 100;
+        float temp = envSensor.getCelsiusHundredths()/100;
+        float humid = envSensor.getHumidityPercent();
+        //Serial.print("VBat        : " ); Serial.println(measuredvbat);
+        //Serial.print("Temperature : " ); Serial.println(temp);
+        //Serial.print("Humidity: " ); Serial.println(humid);
+
+        // Concert Message
+        byte buffer[4];
+        dtostrf(vbat, 1, 2, buffer);
         String res = buffer;
         res.getBytes(buffer, res.length() + 1);
-        Serial.print("VBat: " ); Serial.println(measuredvbat);
         LMIC_setTxData2(1, (uint8_t*) buffer, res.length(), 0);
-        Serial.println(F("Packet queued"));
+        //Serial.println(F("Packet queued"));
     }
 
     // Next TX is scheduled after TX_COMPLETE event.
@@ -162,10 +173,10 @@ void do_send(osjob_t* j){
 void setup() {
     delay(1000);
     Serial.begin(9600);
-    /*while ( ! Serial ) {
-        delay( 1 );
-    }*/
-    Serial.println(F("Starting"));
+    while ( ! Serial ) {
+        delay( 10 );
+    }
+    //Serial.println(F("Starting"));
 
     #ifdef VCC_ENABLE
     // For Pinoccio Scout boards
@@ -234,7 +245,12 @@ void setup() {
 
     // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
     LMIC_setDrTxpow(DR_SF7,14);
-
+    pinMode(2, OUTPUT);
+    pinMode(3, OUTPUT);
+    if (!envSensor.begin()) {
+      Serial.println("Did not find Si7021 sensor!");
+      while (true);
+    }
     // Start job
     do_send(&sendjob);
 }
