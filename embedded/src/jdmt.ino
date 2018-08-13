@@ -36,17 +36,18 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <SI7021.h>
+//#include <Adafruit_SleepyDog.h>
 
 // LoRaWAN NwkSKey, network session key
 // This is the default Semtech key, which is used by the early prototype TTN
 // network.
-static const PROGMEM u1_t NWKSKEY[16] = { 0x8D, 0x50, 0x14, 0xF7, 0x57, 0xED, 0x8C, 0x89, 0xCB, 0xBD, 0x7D, 0xEF, 0xD5, 0xC4, 0x58, 0xD3 };
+static const PROGMEM u1_t NWKSKEY[16] = { 0x6F, 0xE7, 0xE9, 0xDB, 0x0E, 0x9B, 0xB7, 0xFA, 0xE9, 0xC5, 0x25, 0x1B, 0xE7, 0x90, 0x83, 0x13 };
 // LoRaWAN AppSKey, application session key
 // This is the default Semtech key, which is used by the early prototype TTN
 // network.
-static const u1_t PROGMEM APPSKEY[16] = { 0x2F, 0xB5, 0x40, 0xBD, 0xDF, 0xD4, 0x9B, 0x23, 0x2F, 0x96, 0xCA, 0x5E, 0xDB, 0xA5, 0x54, 0x95 };
+static const u1_t PROGMEM APPSKEY[16] = { 0xDF, 0x71, 0x6B, 0x50, 0x90, 0xF8, 0x7F, 0x77, 0x90, 0x8E, 0xA9, 0x41, 0xE9, 0xD5, 0x42, 0xD1 };
 // LoRaWAN end-device address (DevAddr)
-static const u4_t DEVADDR = 0x2601176A ; // <-- Change this address for every node!
+static const u4_t DEVADDR = 0x26011F32 ; // <-- Change this address for every node!
 
 // These callbacks are only used in over-the-air activation, so they are
 // left empty here (we cannot leave them out completely unless
@@ -55,115 +56,70 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
-static uint8_t mydata[] = "Hello, world!";
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
 const unsigned TX_INTERVAL = 30;
+#define LMIC_UNUSED_PIN 0
 
 const lmic_pinmap lmic_pins = {
     .nss = 8,
     .rxtx = LMIC_UNUSED_PIN,
-    .rst = LMIC_UNUSED_PIN,
-    .dio = {7, 9, LMIC_UNUSED_PIN},
+    .rst = 4, //LMIC_UNUSED_PIN,
+    .dio = {7, 6, LMIC_UNUSED_PIN},
 };
 
 SI7021 envSensor;
 
 
 void onEvent (ev_t ev) {
-    Serial.print(os_getTime());
+    //Serial.print(os_getTime());
     Serial.print(": ");
     switch(ev) {
-        /*case EV_SCAN_TIMEOUT:
-            Serial.println(F("EV_SCAN_TIMEOUT"));
-            break;
-        case EV_BEACON_FOUND:
-            Serial.println(F("EV_BEACON_FOUND"));
-            break;
-        case EV_BEACON_MISSED:
-            Serial.println(F("EV_BEACON_MISSED"));
-            break;
-        case EV_BEACON_TRACKED:
-            Serial.println(F("EV_BEACON_TRACKED"));
-            break;
-        case EV_JOINING:
-            Serial.println(F("EV_JOINING"));
-            break;
-        case EV_JOINED:
-            Serial.println(F("EV_JOINED"));
-            break;
-        case EV_RFU1:
-            Serial.println(F("EV_RFU1"));
-            break;
-        case EV_JOIN_FAILED:
-            Serial.println(F("EV_JOIN_FAILED"));
-            break;
-        case EV_REJOIN_FAILED:
-            Serial.println(F("EV_REJOIN_FAILED"));
-            break;*/
         case EV_TXCOMPLETE:
             Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
-            /*if (LMIC.txrxFlags & TXRX_ACK)
+            if (LMIC.txrxFlags & TXRX_ACK)
               Serial.println(F("Received ack"));
             if (LMIC.dataLen) {
               Serial.println(F("Received "));
               Serial.println(LMIC.dataLen);
               Serial.println(F(" bytes of payload"));
-            }*/
+            }
             // Schedule next transmission
             os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
             break;
-        /*case EV_LOST_TSYNC:
-            Serial.println(F("EV_LOST_TSYNC"));
-            break;
-        case EV_RESET:
-            Serial.println(F("EV_RESET"));
-            break;
-        case EV_RXCOMPLETE:
-            // data received in ping slot
-            Serial.println(F("EV_RXCOMPLETE"));
-            break;
-        case EV_LINK_DEAD:
-            Serial.println(F("EV_LINK_DEAD"));
-            break;
-        case EV_LINK_ALIVE:
-            Serial.println(F("EV_LINK_ALIVE"));
-            break;
-         default:
-            Serial.println(F("Unknown event"));
-            break;*/
     }
 }
 
 void do_send(osjob_t* j){
     // Check if there is not a current TX/RX job running
     if (LMIC.opmode & OP_TXRXPEND) {
-        //Serial.println(F("OP_TXRXPEND, not sending"));
+        Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
 
         // Prepare upstream data transmission at the next possible time.
         #define VBATPIN A9
         // Read senser values
         float vbat = analogRead(VBATPIN);
-        measuredvbat *= 2;    // we divided by 2, so multiply back
-        measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
-        measuredvbat /= 1024; // convert to voltage
-        measuredvbat = 1.0*(rand()%100) / 100;
-        float temp = envSensor.getCelsiusHundredths()/100;
-        float humid = envSensor.getHumidityPercent();
-        //Serial.print("VBat        : " ); Serial.println(measuredvbat);
+        vbat *= 2;    // we divided by 2, so multiply back
+        vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+        vbat /= 1024; // convert to voltage
+        vbat = 1.0*(rand()%100) / 100;
+        int temp = envSensor.getCelsiusHundredths()/10;
+        int humid = envSensor.getHumidityPercent();
+        //Serial.print("VBat        : " ); Serial.println(vbat);
         //Serial.print("Temperature : " ); Serial.println(temp);
         //Serial.print("Humidity: " ); Serial.println(humid);
-
+        float data = vbat + temp*100 + humid*100000;
+        Serial.print("Code: " ); Serial.println(data);
         // Concert Message
         byte buffer[4];
-        dtostrf(vbat, 1, 2, buffer);
+        dtostrf(data, 1, 2, buffer);
         String res = buffer;
         res.getBytes(buffer, res.length() + 1);
         LMIC_setTxData2(1, (uint8_t*) buffer, res.length(), 0);
-        //Serial.println(F("Packet queued"));
+        Serial.println(F("Packet queued"));
     }
 
     // Next TX is scheduled after TX_COMPLETE event.
@@ -171,12 +127,11 @@ void do_send(osjob_t* j){
 }
 
 void setup() {
-    delay(1000);
+    delay(1000); // Needed for initialization: https://www.thethingsnetwork.org/forum/t/lmic-on-adafruit-lora-feather-successfully-sends-message-to-ttn-and-then-halts-with-packet-queued/3762/23
     Serial.begin(9600);
     while ( ! Serial ) {
-        delay( 10 );
+        delay( 1 );
     }
-    //Serial.println(F("Starting"));
 
     #ifdef VCC_ENABLE
     // For Pinoccio Scout boards
@@ -215,7 +170,6 @@ void setup() {
     // your network here (unless your network autoconfigures them).
     // Setting up channels should happen after LMIC_setSession, as that
     // configures the minimal channel set.
-    // NA-US channels 0-71 are configured automatically
     LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
     LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
     LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
@@ -247,14 +201,17 @@ void setup() {
     LMIC_setDrTxpow(DR_SF7,14);
     pinMode(2, OUTPUT);
     pinMode(3, OUTPUT);
-    if (!envSensor.begin()) {
-      Serial.println("Did not find Si7021 sensor!");
-      while (true);
-    }
-    // Start job
-    do_send(&sendjob);
+    envSensor.begin();
+
+
+    //delay(10000);
+    //radio.sleep();
+    //Watchdog.sleep(10000);
 }
 
 void loop() {
     os_runloop_once();
+    //delay(5000);
+    //Serial.println("alive..");
+    //do_send(&sendjob);
 }
