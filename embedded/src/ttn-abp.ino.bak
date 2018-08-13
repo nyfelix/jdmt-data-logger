@@ -1,5 +1,3 @@
-// For Debugging check:  https://www.thethingsnetwork.org/forum/t/lmic-on-adafruit-lora-feather-successfully-sends-message-to-ttn-and-then-halts-with-packet-queued/3762/23
-
 /*******************************************************************************
  * Copyright (c) 2015 Thomas Telkamp and Matthijs Kooijman
  *
@@ -34,7 +32,6 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
-#include <Wire.h>
 #include <SI7021.h>
 #include <Adafruit_SleepyDog.h>
 
@@ -60,31 +57,31 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 30;
+const unsigned TX_INTERVAL = 60;
 
 const lmic_pinmap lmic_pins = {
     .nss = 8,
     .rxtx = LMIC_UNUSED_PIN,
-    .rst = 4, //LMIC_UNUSED_PIN,
+    .rst = LMIC_UNUSED_PIN,
     .dio = {7, 6, LMIC_UNUSED_PIN},
 };
 
+// Environmental Sensor
 SI7021 envSensor;
-
 
 void onEvent (ev_t ev) {
     Serial.print(os_getTime());
     Serial.print(": ");
     switch(ev) {
         case EV_TXCOMPLETE:
-            Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+            /*Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
             if (LMIC.txrxFlags & TXRX_ACK)
               Serial.println(F("Received ack"));
             if (LMIC.dataLen) {
               Serial.println(F("Received "));
-              //Serial.println(LMIC.dataLen);
-              //Serial.println(F(" bytes of payload"));
-            }
+              Serial.println(LMIC.dataLen);
+              Serial.println(F(" bytes of payload"));
+            }*/
             // Schedule next transmission
             os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
             break;
@@ -96,41 +93,32 @@ void do_send(osjob_t* j){
     if (LMIC.opmode & OP_TXRXPEND) {
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
-
-        // Prepare upstream data transmission at the next possible time.
-        #define VBATPIN A9
-        // Read senser values
-        float vbat = analogRead(VBATPIN);
-        vbat *= 2;    // we divided by 2, so multiply back
-        vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
-        vbat /= 1024; // convert to voltage
-        vbat = 1.0*(rand()%100) / 100;
-        int temp = envSensor.getCelsiusHundredths()/10;
-        int humid = envSensor.getHumidityPercent();
-        //Serial.print("VBat        : " ); Serial.println(vbat);
-        //Serial.print("Temperature : " ); Serial.println(temp);
-        //Serial.print("Humidity: " ); Serial.println(humid);
-        float data = vbat + temp*100 + humid*100000;
-        Serial.print("Code: " ); Serial.println(data);
-        // Concert Message
-        byte buffer[4];
-        dtostrf(data, 1, 2, buffer);
-        String res = buffer;
-        res.getBytes(buffer, res.length() + 1);
-        LMIC_setTxData2(1, (uint8_t*) buffer, res.length(), 0);
-        Serial.println(F("Packet queued"));
+      // Prepare upstream data transmission at the next possible time.
+      #define VBATPIN A9
+      // Read senser values
+      float vbat = analogRead(VBATPIN);
+      vbat = vbat * 2 * 3.3 / 1024;    // we divided by 2, so multiply back // Multiply by 3.3V, our reference voltage // convert to voltage
+      int temp = envSensor.getCelsiusHundredths()/10;
+      int humid = envSensor.getHumidityPercent();
+      float data = vbat + temp*100 + humid*100000;
+      Serial.print("Code: " ); Serial.println(data);
+      // Concert Message
+      byte buffer[4];
+      dtostrf(data, 1, 2, buffer);
+      String res = buffer;
+      res.getBytes(buffer, res.length() + 1);
+      LMIC_setTxData2(1, (uint8_t*) buffer, res.length(), 0);
+      Serial.println(F("Packet queued"));
     }
-
     // Next TX is scheduled after TX_COMPLETE event.
-
 }
 
 void setup() {
-    delay(1000); // Needed for initialization: https://www.thethingsnetwork.org/forum/t/lmic-on-adafruit-lora-feather-successfully-sends-message-to-ttn-and-then-halts-with-packet-queued/3762/23
-    Serial.begin(9600);
-    while ( ! Serial ) {
+  delay(1000);
+    Serial.begin(115200);
+    /*while ( ! Serial ) {
         delay( 1 );
-    }
+    }*/
 
     #ifdef VCC_ENABLE
     // For Pinoccio Scout boards
@@ -169,6 +157,7 @@ void setup() {
     // your network here (unless your network autoconfigures them).
     // Setting up channels should happen after LMIC_setSession, as that
     // configures the minimal channel set.
+    // NA-US channels 0-71 are configured automatically
     LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
     LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
     LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
@@ -198,20 +187,16 @@ void setup() {
 
     // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
     LMIC_setDrTxpow(DR_SF7,14);
+
+    // Init the enviornmental sensor
     pinMode(2, OUTPUT);
     pinMode(3, OUTPUT);
     envSensor.begin();
 
-
-    //delay(10000);
-    //radio.sleep();
-    //Watchdog.sleep(10000);
+    // Start job
     do_send(&sendjob);
 }
 
 void loop() {
     os_runloop_once();
-    //delay(5000);
-    //Serial.println("alive..");
-    //do_send(&sendjob);
 }
