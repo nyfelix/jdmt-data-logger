@@ -16,7 +16,8 @@
     "react-dom": "^16.4.1",
     "react-google-maps": "^9.4.5",
     "react-scripts": "1.1.4",
-    "s3": "^4.4.0"
+    "s3": "^4.4.0",
+    "whatwg-fetch": "^3.0.0"
   },
   "scripts": {
     "upload": "yarn build && npx babel-node scripts/uploadToBucket.js",
