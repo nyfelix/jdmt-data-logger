@@ -14,7 +14,7 @@ const client = s3.createClient({
 const params = {
   localDir: './build',
   s3Params: {
-    Bucket: 'develop.jdmt',
+    Bucket: 'jdmt-static-web',
   },
 };
 
