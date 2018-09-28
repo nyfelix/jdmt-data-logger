@@ -4,13 +4,13 @@
     "version": "2018-08-13T09:26:46Z",
     "title": "JDMT"
   },
-  "host": "yfoafpdib7.execute-api.eu-west-1.amazonaws.com",
+  "host": "2iuv5z9qnk.execute-api.eu-west-1.amazonaws.com",
   "basePath": "/prod",
   "schemes": [
     "https"
   ],
   "paths": {
-    "/device": {
+    "/device/data": {
       "get": {
         "produces": [
           "application/json"
@@ -30,33 +30,40 @@
               "$ref": "#/definitions/Empty"
             }
           }
-        },
-        "x-amazon-apigateway-integration": {
-          "uri": "arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:672573189865:function:getDevice/invocations",
-          "responses": {
-            "default": {
-              "statusCode": "200"
-            }
-          },
-          "passthroughBehavior": "when_no_match",
-          "httpMethod": "POST",
-          "contentHandling": "CONVERT_TO_TEXT",
-          "type": "aws_proxy"
         }
-      }
-    },
-    "/device/{deviceId}": {
-      "get": {
+      },
+      "options": {
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "name": "deviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/Empty"
+            },
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "type": "string"
+              },
+              "Access-Control-Allow-Methods": {
+                "type": "string"
+              },
+              "Access-Control-Allow-Headers": {
+                "type": "string"
+              }
+            }
           }
+        }
+      }
+    },
+    "/device/query": {
+      "get": {
+        "produces": [
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -65,18 +72,33 @@
               "$ref": "#/definitions/Empty"
             }
           }
-        },
-        "x-amazon-apigateway-integration": {
-          "uri": "arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:672573189865:function:getDevice/invocations",
-          "responses": {
-            "default": {
-              "statusCode": "200"
+        }
+      },
+      "options": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/Empty"
+            },
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "type": "string"
+              },
+              "Access-Control-Allow-Methods": {
+                "type": "string"
+              },
+              "Access-Control-Allow-Headers": {
+                "type": "string"
+              }
             }
-          },
-          "passthroughBehavior": "when_no_match",
-          "httpMethod": "POST",
-          "contentHandling": "CONVERT_TO_TEXT",
-          "type": "aws_proxy"
+          }
         }
       }
     }
