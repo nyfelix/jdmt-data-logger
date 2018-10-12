@@ -35,7 +35,6 @@ class Map extends React.Component {
                     height: '100%',
                   }}
                   onMarkerClick={(_, index) => {
-                    console.log(index, devices);
                     getDeviceData(devices[+index].id);
                   }}
                   regionStyle={{

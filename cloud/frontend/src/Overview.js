@@ -4,13 +4,44 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as Actions from './redux/actions';
 
+const dataset = [{
+  label: 'average',
+  colorFull: 'rgba(126,198,121,1)',
+  colorTransparent: 'rgba(126,198,121,0.6)',
+}, {
+  label: 'max',
+  colorFull: 'rgba(129,150,143,1)',
+  colorTransparent: 'rgba(129,150,143,0.6)',
+
+}, {
+  label: 'min',
+  colorFull: 'rgba(206,134,189,1)',
+  colorTransparent: 'rgba(206,134,189,0.6)',
+}];
+
+const createDataset = (options, data) => ({
+  borderColor: options.colorTransparent,
+  backgroundColor: options.colorTransparent,
+  fill: false,
+  pointBorderColor: options.colorFull,
+  pointBackgroundColor: options.colorFull,
+  pointBorderWidth: 1,
+  pointHoverRadius: 5,
+  pointHoverBackgroundColor: options.colorFull,
+  pointHoverBorderColor: 'rgba(220,220,220,1)',
+  pointHoverBorderWidth: 2,
+  pointRadius: 5,
+  pointHitRadius: 10,
+  data: data.map(item => ({ y: item[options.label], x: new Date(item.from) })),
+  label: options.label,
+});
+
 const entry = measurements => (
   <div className="col-12 col-md-12 col-xl-6 d-flex order-1 order-xl-2">
     <div className="card flex-fill w-100">
       <div className="card-header">
         <h5 className="card-title mb-0">
           {measurements.attribute}
-          {console.log(measurements)}
         </h5>
       </div>
       <div className="card-body d-flex">
@@ -18,34 +49,12 @@ const entry = measurements => (
           <div className="py-3">
             <Line
               data={{
-                datasets: [
-                  {
-                    backgroundColor: 'rgba(75,192,192,0.4)',
-                    borderColor: 'rgba(75,192,192,1)',
-                    borderCapStyle: 'butt',
-                    borderDashOffset: 0.0,
-                    borderJoinStyle: 'miter',
-                    pointBorderColor: 'rgba(75,192,192,1)',
-                    pointBackgroundColor: '#fff',
-                    pointBorderWidth: 1,
-                    pointHoverRadius: 5,
-                    pointHoverBackgroundColor: 'rgba(75,192,192,1)',
-                    pointHoverBorderColor: 'rgba(220,220,220,1)',
-                    pointHoverBorderWidth: 2,
-                    pointRadius: 1,
-                    pointHitRadius: 10,
-                    data: measurements.values.map(item => ({ y: item.average, x: new Date(item.from) })),
-                  },
-                ],
-              }}
-              legend={{
-                display: false,
+                datasets: dataset.map(options => createDataset(options, measurements.values)),
               }}
               options={{
                 scales: {
                   xAxes: [{
                     type: 'time',
-
                   }],
                 },
               }}
