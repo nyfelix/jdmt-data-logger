@@ -1,44 +1,77 @@
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import React from 'react';
-import {
-  withScriptjs,
-  withGoogleMap,
-  GoogleMap,
-  Marker,
-} from 'react-google-maps';
+import { VectorMap } from 'react-jvectormap';
+import * as Actions from './redux/actions';
 
-const MapWithAMarker = withScriptjs(withGoogleMap((props) => {
-  const { devices, onMarkerClick } = props;
-  return (
-    <GoogleMap
-      defaultZoom={8}
-      defaultCenter={{ lat: 47.533125, lng: 8.731556 }}
-      defaultOptions={{ streetViewControl: false }}
-    >
-      {devices.map((device) => {
-        const { lat, lng, id } = device;
-        if (!id) {
-          return '';
-        }
-        return (
-          <Marker
-            key={id}
-            id={id}
-            onClick={() => onMarkerClick(id)}
-            position={{ lat: +lat, lng: +lng }}
-          />
-        );
-      })}
-    </GoogleMap>
-  );
-}));
+class Map extends React.Component {
+  constructor(props) {
+    super(props);
+    props.getDevices();
+  }
 
-export default props => (
-  <MapWithAMarker
-    googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJd_9-gMHZCEXqWq4XrHN_QydPV-m_Q-w"
-    loadingElement={<div style={{ height: '100%' }} />}
-    containerElement={<div style={{ height: '400px' }} />}
-    mapElement={<div style={{ height: '100%' }} />}
-    devices={props.devices}
-    onMarkerClick={props.onMarkerClick}
-  />
-);
+  componentDidMount() {
+
+  }
+
+  render() {
+    const {
+      getDeviceData, devices,
+    } = this.props;
+    return (
+      <div className="row">
+        <div className="col-12 col-lg-12 d-flex">
+          <div className="card flex-fill w-100">
+            <div className="card-body">
+              <div style={{ height: 500 }}>
+                {devices && devices.length !== 0 && (
+                <VectorMap
+                  map="ch_mill"
+                  backgroundColor="transparent"
+                  normalizeFunction="polynomial"
+                  hoverOpacity={0.7}
+                  containerStyle={{
+                    width: '100%',
+                    height: '100%',
+                  }}
+                  onMarkerClick={(_, index) => {
+                    console.log(index, devices);
+                    getDeviceData(devices[+index].id);
+                  }}
+                  regionStyle={{
+                    initial: {
+                      fill: '#DCE3E8',
+                    },
+                  }}
+                  markerStyle={{
+                    initial: {
+                      r: 9,
+                      fill: '#007bff',
+                      'fill-opacity': 0.9,
+                      stroke: '#fff',
+                      'stroke-width': 7,
+                      'stroke-opacity': 0.4,
+                    },
+                    hover: {
+                      stroke: '#fff',
+                      'fill-opacity': 1,
+                      'stroke-width': 1.5,
+                    },
+                  }}
+
+                  markers={devices.map(x => ({ latLng: [+x.lat, +x.lng], name: x.id }))}
+                />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default connect(
+  state => ({ ...state.reducer }),
+  dispatch => bindActionCreators(Actions, dispatch),
+)(Map);
