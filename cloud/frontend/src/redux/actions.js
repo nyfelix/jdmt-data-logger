@@ -12,7 +12,7 @@ export const getDevices = () => (dispatch) => {
     });
 };
 export const getDeviceData = deviceId => (dispatch) => {
-  fetch(`https://2iuv5z9qnk.execute-api.eu-west-1.amazonaws.com/prod/device/data?id=${deviceId}`)
+  fetch(`https://2iuv5z9qnk.execute-api.eu-west-1.amazonaws.com/prod/device/data?id=${deviceId}&resolution=50`)
     .then(response => response.json())
     .then((deviceData) => {
       dispatch({
