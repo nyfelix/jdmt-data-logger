@@ -1,7 +1,11 @@
 import React from 'react';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import Sliders from 'react-feather/dist/icons/sliders';
+import Heart from 'react-feather/dist/icons/heart';
+import * as Actions from './redux/actions';
 
-export default () => (
+const header = props => (
   <nav className="sidebar sidebar-sticky" key="headernav">
     <div className="sidebar-content">
       <a className="sidebar-brand" href="index.html">
@@ -22,8 +26,23 @@ Dashboard
             </span>
           </a>
         </li>
+        {props.devices.map(device => (
+          <li key={device.id} className="sidebar-item active">
+            <a href="index.html" className="sidebar-link">
+              <Heart />
+              <span className="align-middle">
+                {device.id}
+              </span>
+            </a>
+          </li>
+        ))}
 
       </ul>
     </div>
   </nav>
 );
+
+export default connect(
+  state => ({ ...state.reducer }),
+  dispatch => bindActionCreators(Actions, dispatch),
+)(header);

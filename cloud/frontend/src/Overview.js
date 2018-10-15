@@ -37,7 +37,7 @@ const createDataset = (options, data) => ({
 });
 
 const entry = measurements => (
-  <div className="col-12 col-md-12 col-xl-6 d-flex order-1 order-xl-2">
+  <div key={measurements.attribute} className="col-12 col-md-12 col-xl-6 d-flex order-1 order-xl-2">
     <div className="card flex-fill w-100">
       <div className="card-header">
         <h5 className="card-title mb-0">

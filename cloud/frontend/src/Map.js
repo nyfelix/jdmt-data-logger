@@ -1,3 +1,4 @@
+/* global google */
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import React from 'react';
@@ -23,7 +24,7 @@ const MapWithAMarker = withScriptjs(withGoogleMap((props) => {
       {
         devices.map((device) => {
           const { lat, lng, id } = device;
-          return !id ? '' : (<Marker key={id} id={id} onClick={() => onMarkerClick(id)} position={{ lat: +lat, lng: +lng }} />);
+          return !id ? '' : (<Marker key={id} animation={google.maps.Animation.DROP} id={id} onClick={() => onMarkerClick(id)} position={{ lat: +lat, lng: +lng }} />);
         })
       }
     </GoogleMap>
