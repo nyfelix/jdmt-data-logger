@@ -1,23 +1,27 @@
 import React from 'react';
+import { withRouter } from 'react-router';
 
-export default props => (
+const Content = ({ children, match: { params: { deviceId } } }) => (
   <div className="main">
     <div className="main" key="headertoggle">
       <nav className="navbar navbar-expand navbar-light bg-white">
-        <a className="sidebar-toggle d-flex mr-2">
+        <span className="sidebar-toggle d-flex mr-2">
           <i className="hamburger align-self-center" />
-        </a>
+        </span>
       </nav>
     </div>
-
     <main className="content">
       <div className="container-fluid p-0">
         <div className="clearfix">
           <h1 className="h3 mb-3">
-            {props.header}
+            {deviceId || 'Dashboard'}
           </h1>
         </div>
-        {props.children}
+        {children}
       </div>
     </main>
-  </div>);
+  </div>
+);
+
+
+export default withRouter(Content);

@@ -15,53 +15,45 @@ class Map extends React.Component {
       getDeviceData, devices,
     } = this.props;
     return (
-      <div className="row">
-        <div className="col-12 col-lg-12 d-flex">
-          <div className="card flex-fill w-100">
-            <div className="card-body">
-              <div style={{ height: 500 }}>
-                {devices && devices.length !== 0 && (
-                <VectorMap
-                  map="ch_mill"
-                  backgroundColor="transparent"
-                  normalizeFunction="polynomial"
-                  hoverOpacity={0.7}
-                  containerStyle={{
-                    width: '100%',
-                    height: '100%',
-                  }}
-                  onMarkerClick={(_, index) => {
-                    getDeviceData(devices[+index].id);
-                  }}
-                  regionStyle={{
-                    initial: {
-                      fill: '#DCE3E8',
-                    },
-                  }}
-                  markerStyle={{
-                    initial: {
-                      r: 9,
-                      fill: '#007bff',
-                      'fill-opacity': 0.9,
-                      stroke: '#fff',
-                      'stroke-width': 7,
-                      'stroke-opacity': 0.4,
-                    },
-                    hover: {
-                      stroke: '#fff',
-                      'fill-opacity': 1,
-                      'stroke-width': 1.5,
-                    },
-                  }}
-
-                  markers={devices.map(x => ({ latLng: [+x.lat, +x.lng], name: x.id }))}
-                />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      <div style={{ height: 500 }}>
+        {devices && devices.length !== 0 && (
+        <VectorMap
+          map="ch_mill"
+          backgroundColor="transparent"
+          normalizeFunction="polynomial"
+          hoverOpacity={0.7}
+          containerStyle={{
+            width: '100%',
+            height: '100%',
+          }}
+          onMarkerClick={(_, index) => {
+            getDeviceData(devices[+index].id);
+          }}
+          regionStyle={{
+            initial: {
+              fill: '#DCE3E8',
+            },
+          }}
+          markerStyle={{
+            initial: {
+              r: 9,
+              fill: '#007bff',
+              'fill-opacity': 0.9,
+              stroke: '#fff',
+              'stroke-width': 7,
+              'stroke-opacity': 0.4,
+            },
+            hover: {
+              stroke: '#fff',
+              'fill-opacity': 1,
+              'stroke-width': 1.5,
+            },
+          }}
+          markers={devices.map(x => ({ latLng: [+x.lat, +x.lng], name: x.id }))}
+        />
+        )}
       </div>
+
     );
   }
 }
