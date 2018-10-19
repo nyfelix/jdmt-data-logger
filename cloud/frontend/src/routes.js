@@ -17,7 +17,7 @@ export default () => (
             exact
             path="/"
             component={() => (
-              <Content header="Dashboard">
+              <Content>
                 <div className="row">
                   <div className="col-12 col-lg-12 d-flex">
                     <div className="card flex-fill w-100">
@@ -37,16 +37,16 @@ export default () => (
             exact
             path="/:deviceId"
             component={() => (
-              <Content header="test">
+              <Content>
                 <div className="form-row">
-                  <div className="col-6 col-lg-6 d-flex">
+                  <div className="col-3 col-md-3 col-lg-3 d-flex">
                     <div className="card flex-fill w-100">
                       <div className="card-body">
                         <DeviceControll />
                       </div>
                     </div>
                   </div>
-                  <div className="col-6 col-lg-6 d-flex">
+                  <div className="col-9 col-lg-9 d-flex">
                     <div className="card flex-fill w-100">
                       <div className="card-body">
                         <Map />
@@ -55,13 +55,7 @@ export default () => (
                   </div>
                 </div>
                 <div className="row">
-                  <div className="col-12 col-lg-12 d-flex">
-                    <div className="card flex-fill w-100">
-                      <div className="card-body">
-                        LineCharts
-                      </div>
-                    </div>
-                  </div>
+                  <Overview />
                 </div>
               </Content>
             )}

@@ -1,30 +1,26 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import DayPicker, { DateUtils } from 'react-day-picker';
 import * as Actions from './redux/actions';
-import 'react-day-picker/lib/style.css';
 
-const DeviceControll = () => (
+const dateNowMinusDays = days => new Date(new Date().setDate(new Date().getDate() - days))
+  .toISOString();
 
-
-  <div className="form-group col-md-4">
-    <label htmlFor="inputState">
-Zeitspanne
-    </label>
-    <select id="inputState" className="form-control">
-      <option selected>
-Letzten 4 Tage
+const DeviceControll = ({ onChange }) => (
+  <div className="form-group col-md-12">
+    Zeitspanne
+    <select className="form-control" onChange={({ target: { value } }) => onChange('from', value)}>
+      <option value={dateNowMinusDays(4)}>
+    Letzten 4 Tage
       </option>
-      <option>
-Letzten Monat
+      <option value={dateNowMinusDays(31)}>
+    Letzten Monat
       </option>
-      <option>
-Letztes Jahr
+      <option value={dateNowMinusDays(365)}>
+    Letztes Jahr
       </option>
     </select>
   </div>
-
 );
 
 export default connect(

@@ -1,8 +1,9 @@
-import { GET_ALL_DEVICES, GET_DEVICE_DATA } from './actionTypes';
+import { GET_ALL_DEVICES, GET_DEVICE_DATA, ON_CHANGE } from './actionTypes';
 
 
 const initialState = {
   devices: [],
+  resolution: 50,
 };
 export default(oldState = initialState, action) => {
   switch (action.type) {
@@ -15,6 +16,11 @@ export default(oldState = initialState, action) => {
       const { deviceData } = action;
 
       return { ...oldState, deviceData };
+    }
+    case ON_CHANGE: {
+      const { id, value } = action;
+
+      return { ...oldState, [id]: value };
     }
     default:
       return oldState;

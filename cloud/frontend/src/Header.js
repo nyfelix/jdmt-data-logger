@@ -1,14 +1,15 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Sliders from 'react-feather/dist/icons/sliders';
 import Heart from 'react-feather/dist/icons/heart';
 import * as Actions from './redux/actions';
 
-const header = props => (
+const header = ({ devices }) => (
   <nav className="sidebar sidebar-sticky" key="headernav">
     <div className="sidebar-content">
-      <a className="sidebar-brand" href="index.html">
+      <a className="sidebar-brand" href="/">
         <i className="align-middle" data-feather="box" />
         <span className="align-middle">
 JDMT
@@ -19,24 +20,23 @@ JDMT
 Menu
         </li>
         <li className="sidebar-item active">
-          <a href="index.html" className="sidebar-link">
+          <Link className="sidebar-link" to="/">
             <Sliders />
             <span className="align-middle">
 Dashboard
             </span>
-          </a>
+          </Link>
         </li>
-        {props.devices.map(device => (
+        {devices.map(device => (
           <li key={device.id} className="sidebar-item active">
-            <a href="index.html" className="sidebar-link">
+            <Link className="sidebar-link" to={`/${device.id}`}>
               <Heart />
               <span className="align-middle">
                 {device.id}
               </span>
-            </a>
+            </Link>
           </li>
         ))}
-
       </ul>
     </div>
   </nav>

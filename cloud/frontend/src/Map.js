@@ -54,17 +54,18 @@ class Map extends React.Component {
   }
 
   render() {
-    const { getDeviceData, devices } = this.props;
+    const {
+      getDeviceData, devices, from, resolution,
+    } = this.props;
     return (
       <MapWithAMarker
         googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJd_9-gMHZCEXqWq4XrHN_QydPV-m_Q-w"
         loadingElement={<div style={{ height: '100%' }} />}
-        containerElement={<div style={{ height: '400px' }} />}
+        containerElement={<div style={{ height: '380px' }} />}
         mapElement={<div style={{ height: '100%' }} />}
         devices={devices}
-        onMarkerClick={event => getDeviceData(event)}
+        onMarkerClick={event => getDeviceData(event, from, resolution)}
       />
-
     );
   }
 }
