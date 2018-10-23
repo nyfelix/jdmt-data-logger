@@ -31,6 +31,8 @@
  *
  *******************************************************************************/
 
+//ToDo: Replace arduino-limc by https://github.com/mcci-catena/arduino-lmic to
+//      free more memory on 32u4 platform
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
@@ -83,8 +85,8 @@ void onEvent (ev_t ev) {
               Serial.println(F("Received ack"));
             if (LMIC.dataLen) {
               Serial.println(F("Received "));
-              //Serial.println(LMIC.dataLen);
-              //Serial.println(F(" bytes of payload"));
+              Serial.println(LMIC.dataLen);
+              Serial.println(F(" bytes of payload"));
             }
             // Schedule next transmission
             os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
@@ -207,7 +209,6 @@ void setup() {
     //delay(10000);
     //radio.sleep();
     //Watchdog.sleep(10000);
-    do_send(&sendjob);
 }
 
 void loop() {
