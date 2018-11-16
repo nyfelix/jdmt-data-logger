@@ -2,9 +2,7 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as Actions from '../logic/actions';
-
-const dateNowMinusDays = days => new Date(new Date().setDate(new Date().getDate() - days))
-  .toISOString();
+import dateNowMinusDays from '../logic/dateNowMinusDays';
 
 export default connect(
   state => ({ ...state.reducer }),
