@@ -1,7 +1,5 @@
 const s3 = require('s3');
-const dotenv = require('dotenv');
-
-dotenv.config();
+require('dotenv').config();
 
 const client = s3.createClient({
   s3Options: {
