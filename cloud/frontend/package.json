@@ -23,7 +23,7 @@
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {
-    "upload": "rm -rfd ./build && parcel build ./src/index.html --out-dir build && npx ./scripts/uploadToBucket.js",
+    "deploy": "rm -rfd ./build && parcel build ./src/index.html --out-dir build && npx ./deploy.js && rm -rfd ./build",
     "start": "parcel ./src/index.html --open"
   },
   "devDependencies": {
