@@ -6,6 +6,7 @@
  - accessKeyId
  - secretAccessKey
  - region
+ - gkey --> Google-Maps-API-Key
 
  ## Deployment
 

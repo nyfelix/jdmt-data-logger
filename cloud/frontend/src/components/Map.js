@@ -59,7 +59,7 @@ class Map extends React.Component {
     } = this.props;
     return (
       <MapWithAMarker
-        googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUSQcWODHeYXS5v1qpUH8JcnwWajebp7o"
+        googleMapURL={`https://maps.googleapis.com/maps/api/js?key=${process.env.gkey}`}
         loadingElement={<div style={{ height: '100%' }} />}
         containerElement={<div style={{ height: '380px' }} />}
         mapElement={<div style={{ height: '100%' }} />}
