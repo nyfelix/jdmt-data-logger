@@ -64,7 +64,7 @@ class Map extends React.Component {
         containerElement={<div style={{ height: '380px' }} />}
         mapElement={<div style={{ height: '100%' }} />}
         devices={devices}
-        onMarkerClick={event => getDeviceData(event, from, resolution)}
+        onMarkerClick={deviceId => getDeviceData({ deviceId, from, resolution })}
       />
     );
   }

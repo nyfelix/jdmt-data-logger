@@ -1,8 +1,8 @@
-import { GET_ALL_DEVICES, GET_DEVICE_DATA, ON_CHANGE } from './actionTypes';
-
+import { GET_ALL_DEVICES, GET_DEVICE_DATA, FROM_CHANGE } from './actionTypes';
 
 const initialState = {
   devices: [],
+  from: null,
   resolution: 50,
 };
 export default(oldState = initialState, action) => {
@@ -17,10 +17,10 @@ export default(oldState = initialState, action) => {
 
       return { ...oldState, deviceData };
     }
-    case ON_CHANGE: {
-      const { id, value } = action;
+    case FROM_CHANGE: {
+      const { from } = action;
 
-      return { ...oldState, [id]: value };
+      return { ...oldState, from };
     }
     default:
       return oldState;

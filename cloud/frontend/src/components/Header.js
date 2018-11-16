@@ -12,12 +12,12 @@ export default connect(
 )(({ devices }) => (
   <nav className="sidebar sidebar-sticky" key="headernav">
     <div className="sidebar-content">
-      <a className="sidebar-brand" href="/">
+      <Link className="sidebar-brand" to="/">
         <i className="align-middle" data-feather="box" />
         <span className="align-middle">
 JDMT
         </span>
-      </a>
+      </Link>
       <ul className="sidebar-nav">
         <li className="sidebar-header">
 Menu
