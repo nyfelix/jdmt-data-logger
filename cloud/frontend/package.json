@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "chart.js": "^2.7.2",
+    "dotenv": "^6.1.0",
     "history": "^4.7.2",
     "react": "^16.4.1",
     "react-chartjs-2": "^2.7.4",
@@ -21,14 +22,13 @@
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {
-    "upload": "parcel build ./src/index.html --out-dir build && npx babel-node scripts/uploadToBucket.js && rm -rfd build",
+    "upload": "rm -rfd ./build && parcel build ./src/index.html --out-dir build && npx ./scripts/uploadToBucket.js",
     "start": "parcel ./src/index.html --open"
   },
   "devDependencies": {
     "@types/googlemaps": "^3.30.16",
     "@types/markerclustererplus": "^2.1.33",
     "@types/react": "^16.7.6",
-    "dotenv": "^6.1.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb": "^17.0.0",
     "eslint-plugin-import": "^2.13.0",

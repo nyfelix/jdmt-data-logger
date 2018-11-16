@@ -10,4 +10,4 @@
  ## Deployment
 
 builds the scripts in src folder and uploads it to jdmt.develop.
-```npm upload```
+```npm run upload```

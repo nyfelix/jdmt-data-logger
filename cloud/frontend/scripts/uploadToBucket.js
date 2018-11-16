@@ -1,5 +1,5 @@
-import s3 from 's3';
-import dotenv from 'dotenv';
+const s3 = require('s3');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
