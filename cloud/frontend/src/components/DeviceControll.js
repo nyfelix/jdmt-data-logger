@@ -6,7 +6,10 @@ import * as Actions from '../logic/actions';
 const dateNowMinusDays = days => new Date(new Date().setDate(new Date().getDate() - days))
   .toISOString();
 
-const DeviceControll = ({ onChange }) => (
+export default connect(
+  state => ({ ...state.reducer }),
+  dispatch => bindActionCreators(Actions, dispatch),
+)(({ onChange }) => (
   <div className="form-group col-md-12">
     Zeitspanne
     <select className="form-control" onChange={({ target: { value } }) => onChange('from', value)}>
@@ -21,9 +24,4 @@ const DeviceControll = ({ onChange }) => (
       </option>
     </select>
   </div>
-);
-
-export default connect(
-  state => ({ ...state.reducer }),
-  dispatch => bindActionCreators(Actions, dispatch),
-)(DeviceControll);
+));

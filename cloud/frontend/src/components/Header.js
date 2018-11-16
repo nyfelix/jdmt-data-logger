@@ -6,7 +6,10 @@ import Sliders from 'react-feather/dist/icons/sliders';
 import Heart from 'react-feather/dist/icons/heart';
 import * as Actions from '../logic/actions';
 
-const header = ({ devices }) => (
+export default connect(
+  state => ({ ...state.reducer }),
+  dispatch => bindActionCreators(Actions, dispatch),
+)(({ devices }) => (
   <nav className="sidebar sidebar-sticky" key="headernav">
     <div className="sidebar-content">
       <a className="sidebar-brand" href="/">
@@ -40,9 +43,4 @@ Dashboard
       </ul>
     </div>
   </nav>
-);
-
-export default connect(
-  state => ({ ...state.reducer }),
-  dispatch => bindActionCreators(Actions, dispatch),
-)(header);
+));

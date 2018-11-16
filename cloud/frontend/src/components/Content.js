@@ -1,7 +1,7 @@
 import React from 'react';
 import { withRouter } from 'react-router';
 
-const Content = ({ children, match: { params: { deviceId } } }) => (
+export default withRouter(({ children, match: { params: { deviceId } } }) => (
   <div className="main">
     <div className="main" key="headertoggle">
       <nav className="navbar navbar-expand navbar-light bg-white">
@@ -21,7 +21,4 @@ const Content = ({ children, match: { params: { deviceId } } }) => (
       </div>
     </main>
   </div>
-);
-
-
-export default withRouter(Content);
+));
