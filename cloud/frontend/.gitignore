@@ -1,5 +1,7 @@
 .vscode
 build
+dist
+.cache
 
 src/**/*.css
 

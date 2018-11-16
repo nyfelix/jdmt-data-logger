@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Sliders from 'react-feather/dist/icons/sliders';
 import Heart from 'react-feather/dist/icons/heart';
-import * as Actions from './redux/actions';
+import * as Actions from '../logic/actions';
 
 const header = ({ devices }) => (
   <nav className="sidebar sidebar-sticky" key="headernav">

@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
-import Map from './Map';
-import Overview from './Overview';
-import Header from './Header';
-import Content from './Content';
-import DeviceControll from './DeviceControll';
+import Map from './components/Map';
+import Overview from './components/Overview';
+import Header from './components/Header';
+import Content from './components/Content';
+import DeviceControll from './components/DeviceControll';
 
 export default () => (
   <BrowserRouter>

@@ -8,7 +8,7 @@ import {
   GoogleMap,
   Marker,
 } from 'react-google-maps';
-import * as Actions from './redux/actions';
+import * as Actions from '../logic/actions';
 
 const MapWithAMarker = withScriptjs(
   withGoogleMap((props) => {
