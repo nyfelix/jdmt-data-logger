@@ -37,7 +37,7 @@ const createDataset = (options, data) => ({
 });
 
 export default ({ attribute, values }) => (
-  <div className="col-6 col-md-6 col-xl-12 col-lg-12 d-flex order-1 order-xl-2">
+  <div className="col-6 col-md-6 col-xl-6 col-lg-6 d-flex order-1 order-xl-2">
     <div className="card flex-fill w-100">
       <div className="card-header">
         <h5 className="card-title mb-0">
