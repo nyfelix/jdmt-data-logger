@@ -6,28 +6,28 @@ const iotdata = new AWS.IotData({ endpoint: 'a2zzdzxcy5vwv0-ats.iot.eu-west-1.am
 
 exports.handler = async () => new Promise((resolve, reject) => {
   try {
-    iot.listThings({}, (_, data) => {
-      console.log(data);
-      Promise.all(data.things.map(device => new Promise((res, rej) => {
-        iotdata.getThingShadow({ thingName: device.thingName }, (error, response) => {
-          if (error || response.payload.state === undefined) {
+    iot.listThings({}, async (_, { things }) => {
+      const devices = things
+      // eslint-disable-next-line camelcase
+        .map(({ thingName, attributes: { dev_id } }) => ({ name: thingName, id: dev_id }));
+      const data = await Promise.all(devices.map(device => new Promise((res, rej) => {
+        iotdata.getThingShadow({ thingName: device.name }, (error, response) => {
+          if (error) {
             rej(error);
-            return;
+          } else {
+            const { state: { reported } } = JSON.parse(response.payload);
+            res({
+              ...device, ...reported,
+            });
           }
-          const { lat, lng } = response.payload.state.reported;
-          res({
-            name: device.thingName, dev_id: device.attributes.dev_id, lat, lng,
-          });
         });
-      }))).then((devices) => {
-        console.log(devices);
-        const response = {
-          isBase64Encoded: false,
-          body: JSON.stringify(devices),
-          headers: { 'Access-Control-Allow-Origin': '*' },
-        };
-        resolve(response);
-      });
+      })));
+      const response = {
+        isBase64Encoded: false,
+        body: JSON.stringify(data),
+        headers: { 'Access-Control-Allow-Origin': '*' },
+      };
+      resolve(response);
     });
   } catch (error) {
     reject(error);

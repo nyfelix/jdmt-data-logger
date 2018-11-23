@@ -7,9 +7,8 @@ export default(oldState = initialState, action) => {
   switch (action.type) {
     case 'GET_ALL_DEVICES': {
       const { devices } = action;
-      // eslint-disable-next-line camelcase
-      const filteredDevices = devices.map(({ dev_id, ...rest }) => ({ ...rest, id: dev_id }));
-      return { ...oldState, devices: filteredDevices };
+      console.log(devices);
+      return { ...oldState, devices };
     }
     case 'GET_DEVICE_DATA': {
       const { deviceData } = action;
