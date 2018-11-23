@@ -37,25 +37,19 @@ exports.handler = async (event) => {
 
   if (resolution && data.Items && data.Items.length !== 0) {
     const sortedData = data.Items.sort((a, b) => (a.time - b.time));
-    const attributes = Object.keys(data.Items[0]).filter(x => x !== 'time' && x !== 'dev_id');
-    const collectedData = attributes.map(attribute => ({ attribute, values: compressData(sortedData, resolution, attribute) }));
+    const collectedData = Object.keys(data.Items[0]).filter(x => x !== 'time' && x !== 'dev_id')
+      .map(attribute => ({ attribute, values: compressData(sortedData, resolution, attribute) }));
 
     return {
       isBase64Encoded: false,
-      statusCode: '200',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers: { 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify(collectedData),
     };
   }
 
   return {
     isBase64Encoded: false,
-    statusCode: '200',
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-    },
+    headers: { 'Access-Control-Allow-Origin': '*' },
     body: JSON.stringify(data.Items),
   };
 };
