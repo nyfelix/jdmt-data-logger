@@ -10,7 +10,7 @@ Resources:
       CodeUri: src/getDataFromDevice
       Description: ''
       MemorySize: 128
-      Timeout: 3
+      Timeout: 15
       Role: 'arn:aws:iam::582142734153:role/jdmt-lambda-basic'
       Events:
         Api1:

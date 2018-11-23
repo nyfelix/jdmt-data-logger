@@ -19,7 +19,7 @@ Resources:
     Type: AWS::Serverless::Function
   getDataFromDevice:
     Properties:
-      CodeUri: s3://jdmt-deployment/9141a924d6345a54c24921e10f8bfcc3
+      CodeUri: s3://jdmt-deployment/2281c438a9c2785c47cc536f0678af0d
       Description: ''
       Events:
         Api1:
@@ -31,6 +31,6 @@ Resources:
       MemorySize: 128
       Role: arn:aws:iam::582142734153:role/jdmt-lambda-basic
       Runtime: nodejs8.10
-      Timeout: 3
+      Timeout: 15
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31
