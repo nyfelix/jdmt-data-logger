@@ -2,12 +2,12 @@
 Transform: 'AWS::Serverless-2016-10-31'
 Description: An AWS Serverless Specification template describing your function.
 Resources:
-  getAllDevices:
+  getDataFromDevice:
     Type: 'AWS::Serverless::Function'
     Properties:
       Handler: index.handler
       Runtime: nodejs8.10
-      CodeUri: getAllDevices/
+      CodeUri: src/getDataFromDevice
       Description: ''
       MemorySize: 128
       Timeout: 3
@@ -16,9 +16,20 @@ Resources:
         Api1:
           Type: Api
           Properties:
-            Path: /MyResource
-            Method: ANY
-        Api2:
+            Path: /device/data
+            Method: GET
+  getAllDevices:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs8.10
+      CodeUri: src/getAllDevices
+      Description: ''
+      MemorySize: 128
+      Timeout: 3
+      Role: 'arn:aws:iam::582142734153:role/jdmt-lambda-basic'
+      Events:
+        Api1:
           Type: Api
           Properties:
             Path: /device/query
