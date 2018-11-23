@@ -2,7 +2,8 @@
 
 ## Requirement
 
-- sam & aws cli.
+- aws cli
+- sam cli
 - .env File with the following entries:
     - accessKeyId
     - secretAccessKey
