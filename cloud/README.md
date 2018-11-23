@@ -2,14 +2,15 @@
 
 ## Requirement
 
-.env File with the following entries:
- - accessKeyId
- - secretAccessKey
- - region
- - gkey --> Google-Maps-API-Key
- - endpoint
- - query url
- - data url
+- sam & aws cli.
+- .env File with the following entries:
+    - accessKeyId
+    - secretAccessKey
+    - region
+    - gkey --> Google-Maps-API-Key
+    - endpoint
+    - query url
+    - data url
 
  ## Deployment
 
