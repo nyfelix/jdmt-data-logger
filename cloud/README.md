@@ -16,10 +16,14 @@
 
 Upload src and lambda directory to jdmt.develop.
 
-```npm run upload```
+```
+npm run upload
+```
 
 ## Local testing
 
 starts the frontend and backend (with hot reloading) locally.
 
-```npm start```
+```
+npm start
+```
