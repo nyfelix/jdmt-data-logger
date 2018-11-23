@@ -16,9 +16,7 @@ exports.handler = async () => new Promise((resolve, reject) => {
             rej(error);
           } else {
             const { state: { reported } } = JSON.parse(response.payload);
-            res({
-              ...device, ...reported,
-            });
+            res({ ...device, ...reported });
           }
         });
       })));
