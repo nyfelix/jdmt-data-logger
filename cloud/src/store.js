@@ -7,12 +7,7 @@ import createHistory from 'history/createBrowserHistory';
 
 import reducer from './logic/reducer';
 
-const history = createHistory();
-const reduxRouterMiddleware = routerMiddleware(history);
-const store = createStore(
+export default createStore(
   combineReducers({ reducer }),
-  undefined,
-  compose(applyMiddleware(thunk, reduxRouterMiddleware)),
+  compose(applyMiddleware(thunk, routerMiddleware(createHistory()))),
 );
-
-export default store;

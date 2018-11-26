@@ -16,6 +16,15 @@ class DetailView extends React.Component {
     getDeviceData({ from, resolution, deviceId });
   }
 
+  componentDidUpdate(prevProps) {
+    const {
+      getDeviceData, from, resolution, match: { params: { deviceId } },
+    } = this.props;
+    if (prevProps.match.params.deviceId !== deviceId) {
+      getDeviceData({ from, resolution, deviceId });
+    }
+  }
+
   render() {
     const { deviceData } = this.props;
 

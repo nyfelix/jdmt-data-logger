@@ -8,8 +8,6 @@ import registerServiceWorker from './registerServiceWorker';
 import store from './store';
 import Routes from './routes';
 
-require('dotenv').config();
-
 const history = typeof window !== 'undefined'
   ? createBrowserHistory()
   : createMemoryHistory();

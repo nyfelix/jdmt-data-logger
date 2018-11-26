@@ -3,15 +3,10 @@ Description: An AWS Serverless Specification template describing your function.
 Resources:
   getAllDevices:
     Properties:
-      CodeUri: s3://jdmt-deployment/1dd865f46310dcaae5d008b77c017022
+      CodeUri: s3://jdmt-deployment/a27decdccdf5a5b120210257d80f5fe9
       Description: ''
       Events:
         Api1:
-          Properties:
-            Method: ANY
-            Path: /MyResource
-          Type: Api
-        Api2:
           Properties:
             Method: GET
             Path: /device/query
@@ -21,5 +16,21 @@ Resources:
       Role: arn:aws:iam::582142734153:role/jdmt-lambda-basic
       Runtime: nodejs8.10
       Timeout: 3
+    Type: AWS::Serverless::Function
+  getDataFromDevice:
+    Properties:
+      CodeUri: s3://jdmt-deployment/2281c438a9c2785c47cc536f0678af0d
+      Description: ''
+      Events:
+        Api1:
+          Properties:
+            Method: GET
+            Path: /device/data
+          Type: Api
+      Handler: index.handler
+      MemorySize: 128
+      Role: arn:aws:iam::582142734153:role/jdmt-lambda-basic
+      Runtime: nodejs8.10
+      Timeout: 15
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31
