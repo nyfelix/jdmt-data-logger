@@ -5,9 +5,11 @@ function Decoder(bytes, port) {
   rawTemp = bytes[0] + bytes[1] * 256;
   // humidity
   rawHumid = bytes[2] + bytes[3] * 256
+    // humidity
+  rawBat = bytes[4] + bytes[5] * 256
 
   var decoded = {
-    'vBat' : 3.3,
+    'vBat' : sflt162f(rawBat) * 10,
     'humidity' : sflt162f(rawHumid) * 100,
     'temperature' : sflt162f(rawTemp) * 100,
     'state' : {
