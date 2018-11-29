@@ -21,7 +21,7 @@ int bbY2;
 
 void printImage() {
   for (int y=0; y<height; y+=6) {
-    for (int x=0; x<width; x+=6) {
+    for (int x=0; x<width; x+=4) {
       if (binaryImage[x][y]) {
           Serial.print("o");
       } else {
@@ -39,7 +39,7 @@ bool checkMono(int count, int compare) {
   return false;
 }
 
-void findBorder(int &bb1, int &bb2, int dim1, int dim2) {
+void findBorder(int &bb1, int &bb2, int dim1, int dim2, bool horizontal) {
   bb1 = 0;
   bb2 = 0;
   int c = dim1/2;
@@ -47,10 +47,10 @@ void findBorder(int &bb1, int &bb2, int dim1, int dim2) {
     int count1 = 0;
     int count2 = 0;
     for (int y=0; y<dim2; y++) {
-      if (binaryImage[c-x-1][y]) {
+      if ((horizontal && binaryImage[c-x-1][y]) || (!horizontal  && binaryImage[y][c-x-1])) {
         count1++;
       }
-      if (binaryImage[c+x][y]) {
+      if ((horizontal && binaryImage[c+x][y]) || (!horizontal  && binaryImage[y][c+x])) {
         count2++;
       }
     }
@@ -65,11 +65,10 @@ void findBorder(int &bb1, int &bb2, int dim1, int dim2) {
 
 void superSimpleBoundingBox() {
   //from center to left and right
-  findBorder(bbX1, bbX2, width, height);
-  findBorder(bbY1, bbY2, height, width);
+  findBorder(bbX1, bbX2, width, height, true);
+  findBorder(bbY1, bbY2, height, width, false);
 
   // Iterate with new Matrix until bbX and bbY are stabel
-
   Serial.print("Left: ");
   Serial.println(bbX1);
   Serial.print("Right: ");
@@ -78,6 +77,14 @@ void superSimpleBoundingBox() {
   Serial.println(bbY1);
   Serial.print("Bottom: ");
   Serial.println(bbY2);
+
+  // Move in Matrix does not work
+  for (int x=bbX1; x<bbX2; x++) {
+    for (int y=bbY1; y<bbY2; y++) {
+      binaryImage[x-bbX1][y-bbY1] = binaryImage[x][y];
+    }
+  }
+  printImage();
   //from center to top
   //from center to bottem
 }
