@@ -14,6 +14,7 @@
 #include <SPI.h>
 #include <lmic_util.h>
 #include <SI7021.h>
+#include <Adafruit_SleepyDog.h>
 #include <config.h>
 
 // Visit your thethingsnetwork.org device console
@@ -34,7 +35,7 @@ uint8_t DevAddr[4] = DEVADDR;
 unsigned char payload[7];
 
 // How many times data transfer should occur, in seconds
-const unsigned int sendInterval = 30;
+const unsigned int sendInterval = SLEEPTIME_SECONDS;
 
 #ifdef FEATHER32U4
   // Pinout for Adafruit Feather 32u4 LoRa
@@ -103,8 +104,7 @@ void setup()
   lora.setDatarate(SF7BW125);
   if(!lora.begin())
   {
-    Serial.println("Failed");
-    Serial.println("Check your radio");
+    debugLn("Failed: Check your radio");
     while(true);
   }
   debugLn(" OK");
@@ -124,5 +124,10 @@ void loop()
   digitalWrite(LED_BUILTIN, LOW);
 
   debugLn("delaying...");
-  delay(sendInterval * 1000);
+  #ifndef DEBUG
+    Watchdog.sleep(sendInterval * 1000);
+  #else
+    delay(sendInterval * 1000);
+  #endif
+
 }
