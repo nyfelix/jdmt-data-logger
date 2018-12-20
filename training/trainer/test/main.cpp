@@ -5,12 +5,15 @@
  *
  * Inspired by: robotics.hobbizine.com/arduinoann.html for details.
  ******************************************************************/
+
 #include <Arduino.h>
 #include <math.h>
 
 /******************************************************************
  * Network Configuration - customized per network
  ******************************************************************/
+#define TRAINING_CYCLES
+
 
 const int PatternCount = 10;
 const int InputNodes = 7;
