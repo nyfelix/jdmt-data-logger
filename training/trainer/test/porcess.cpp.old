@@ -1,4 +1,5 @@
-#include <Arduino.h>
+
+#include <math.h>
 #include <sample0001.c>
 // Read Image into Array (http://www.digole.com/tools/PicturetoC_Hex_converter.php) ...OK
 // Process Grayscale into black and white binary Image ...OK
