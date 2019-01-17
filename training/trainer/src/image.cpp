@@ -1,18 +1,21 @@
 #include <image.h>
 #include <stdio.h>
+#include <math.h>
 
 Image::Image() {
   clear();
-  threshold = 35;
+  threshold = DEFAULT_THRESHOLD;
 }
 
 void Image::clear() {
   for (int x=0; x<img_width; x++) {
     for (int y=0; y<img_height; y++) {
-        binaryImage[x][y] = 0;
+      binaryImage[x][y] = 0;
+      if (x < norm_img_width && y < norm_img_height) {
         normImage[x][y] = 0;
       }
     }
+  }
   width = img_width;
   height = img_height;
   bbX1 = 0;
@@ -40,10 +43,23 @@ void Image::loadFrom265GrayArray(uint8_t imageArray[]) {
   }
 }
 
-void Image::printImage(bool original = false) {
+void Image::printImage(bool original) {
   for (int y=0; y<height; y+=6) {
     for (int x=0; x<width; x+=4) {
       if (binaryImage[x][y] == true) {
+          printf("*");
+      } else {
+          printf(" ");
+      }
+    }
+    printf("\n");
+  }
+}
+
+void Image::printNormImage() {
+  for (int y=0; y<norm_img_height; y++) {
+    for (int x=0; x<norm_img_width; x++) {
+      if (normImage[x][y] == true) {
           printf("*");
       } else {
           printf(" ");
@@ -107,5 +123,40 @@ void Image::cropToBoundingBox() {
     width = nWidth;
     height = nHeight;
     cropToBoundingBox();
+  }
+}
+
+void Image::normalize() {
+  printf("Orignial: %i, %i", width, height);
+  int skipX = round(norm_img_width/(width - norm_img_width));
+  int skipY = round(norm_img_height/(height - norm_img_height));
+  printf("Scale: %f, %f", skipX, skipY);
+  int xn = 0;
+  for (int x=0; x<width; x++) {
+    // Skip Every skipX
+
+    if (x % skipX != 0) {
+      int yn = 0;
+      for (int y=0; y<height; y++) {
+        if (y % skipY != 0) { //Skip if y/skipY
+          normImage[xn][yn] = binaryImage[x][y];
+          yn++;
+        }
+      }
+      xn++;
+    }
+  }
+}
+
+void Image::caracterize() {
+  int cntTopLeft;
+  int cntTopRight;
+  int cntBotomLeft;
+  int cntBotomRight;
+
+  for (int x=0; x<norm_img_width; x++) {
+    for (int y=0; x<norm_img_height; y++) {
+      //cVector[0]
+    }
   }
 }

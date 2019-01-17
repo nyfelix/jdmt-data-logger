@@ -19,11 +19,16 @@ int main()
     Image* imgOK = new Image();
     imgOK->loadFrom265GrayArray(sample0001_map);
     imgOK->cropToBoundingBox();
+    imgOK->normalize();
     imgOK->printImage();
+    imgOK->printNormImage();
     printf("Load Image Not OK ...\n");
     Image* imgNOK = new Image();
     imgNOK->loadFrom265GrayArray(sample0002_map);
     imgNOK->cropToBoundingBox();
     imgNOK->printImage();
+    //imgNOK->printNormImage();
+    // Classiifcation: Momenten-Invarianten berechnung
+
     return 0;
 }

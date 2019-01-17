@@ -1,7 +1,9 @@
 #ifndef Image_h
 #define Image_h
 
+#include <config.h>
 #include <stdint.h>
+#include <math.h>
 
 //Size of input Image
 static const int img_width = 160;
@@ -10,14 +12,19 @@ static const int img_height = 120;
 static const int norm_img_width = 40;
 static const int norm_img_height = 30;
 
+
 class Image
 {
   public:
     Image();
-    void printImage(bool original = false);
-    void cropToBoundingBox();
-    void loadFrom265GrayArray(uint8_t imageArray[]);
     void clear();
+    void loadFrom265GrayArray(uint8_t imageArray[]);
+    void cropToBoundingBox(); // Compute the bounding box
+    void normalize();         // nNormalize image to size of norm_img_widthxnorm_img_width bits
+    void caracterize();
+    void printImage(bool original = false);
+    void printNormImage();
+    bool cVector [CLASS_VECTOR_SIZE];
 
   protected:
     bool checkMono(int count, int compare);
