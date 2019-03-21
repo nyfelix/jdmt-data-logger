@@ -12,23 +12,35 @@
 #include <sample0001.h>
 
 // Implementation for native OS
+
+void processImage(uint8_t map[]) {
+  Image* imgOK = new Image();
+  imgOK->loadFrom265GrayArray(map);
+  //imgOK->printImage(true);
+  imgOK->cropToBoundingBox();
+  imgOK->normalize();
+  imgOK->classify();
+  imgOK->printNormImage();
+}
+
 int main()
 {
     printf("This is the Image Trainer v.0.1\n");
-    printf("Load Image OK ...\n");
-    Image* imgOK = new Image();
-    imgOK->loadFrom265GrayArray(sample0001_map);
-    imgOK->cropToBoundingBox();
-    imgOK->normalize();
-    imgOK->printImage();
-    imgOK->printNormImage();
-    printf("Load Image Not OK ...\n");
+    processImage(sample0023_map);
+    processImage(sample0024_map);
+    processImage(sample0025_map);
+    processImage(sample0026_map);
+    processImage(sample0027_map);
+
+    /*
+    printf("Load Image NOK ...\n");
     Image* imgNOK = new Image();
     imgNOK->loadFrom265GrayArray(sample0002_map);
     imgNOK->cropToBoundingBox();
-    imgNOK->printImage();
+    imgNOK->normalize();
+    imgNOK->classify();
     //imgNOK->printNormImage();
     // Classiifcation: Momenten-Invarianten berechnung
-
+    */
     return 0;
 }

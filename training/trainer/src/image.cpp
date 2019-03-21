@@ -44,8 +44,14 @@ void Image::loadFrom265GrayArray(uint8_t imageArray[]) {
 }
 
 void Image::printImage(bool original) {
-  for (int y=0; y<height; y+=6) {
-    for (int x=0; x<width; x+=4) {
+  int scaleY = 6;
+  int scaleX = 4;
+  if (original) {
+    scaleY = 1;
+    scaleX = 1;
+  }
+  for (int y=0; y<height; y+=scaleY) {
+    for (int x=0; x<width; x+=scaleX) {
       if (binaryImage[x][y] == true) {
           printf("*");
       } else {
@@ -107,14 +113,14 @@ void Image::cropToBoundingBox() {
   //from center to left and right
   findBorder(bbX1, bbX2, width, height, true);
   findBorder(bbY1, bbY2, height, width, false);
-  int nWidth = bbX2 - bbX1;
-  int nHeight = bbY2- bbY1;
+  int nWidth = fmin(bbX2 - bbX1, width);
+  int nHeight = fmin(bbY2 - bbY1, height);
 
-  if (width != nWidth && height != nHeight) {
+  if (width != nWidth || height != nHeight) {
     // Iterate with new Matrix until bbX and bbY are stabel
-    printf("Left: %i, Right: %i, Top: %i, Bottom: %i\n", bbX1, bbX2, bbY1, bbY2);
+    //printf("Left: %i, Right: %i, Top: %i, Bottom: %i\n", bbX1, bbX2, bbY1, bbY2);
 
-    // Move in Matrix does not work
+    // Transform Matrx to Bounding Box
     for (int x=bbX1; x<bbX2; x++) {
       for (int y=bbY1; y<bbY2; y++) {
         binaryImage[x-bbX1][y-bbY1] = binaryImage[x][y];
@@ -122,41 +128,49 @@ void Image::cropToBoundingBox() {
     }
     width = nWidth;
     height = nHeight;
+    //printf("Width: %i, Height: %i\n", width, height);
     cropToBoundingBox();
   }
 }
 
+// Algorithm accordung to: https://stackoverflow.com/questions/299267/image-scaling-and-rotating-in-c-c
 void Image::normalize() {
-  printf("Orignial: %i, %i", width, height);
-  int skipX = round(norm_img_width/(width - norm_img_width));
-  int skipY = round(norm_img_height/(height - norm_img_height));
-  printf("Scale: %f, %f", skipX, skipY);
-  int xn = 0;
-  for (int x=0; x<width; x++) {
-    // Skip Every skipX
-
-    if (x % skipX != 0) {
-      int yn = 0;
-      for (int y=0; y<height; y++) {
-        if (y % skipY != 0) { //Skip if y/skipY
-          normImage[xn][yn] = binaryImage[x][y];
-          yn++;
-        }
-      }
-      xn++;
+  //printf("Orignial: %i, %i -> Norm: %i, %i\n", width, height, norm_img_width, norm_img_height);
+  for (int dy = 0; dy < norm_img_height; dy++) {
+    for (int dx = 0; dx < norm_img_width; dx++) {
+      int blockX = int(1.0*dx*width/norm_img_width);
+      int blockY = int(1.0*dy*height/norm_img_height);
+      normImage[dx][dy] = binaryImage[blockX][blockY];
     }
   }
 }
 
-void Image::caracterize() {
-  int cntTopLeft;
-  int cntTopRight;
-  int cntBotomLeft;
-  int cntBotomRight;
 
-  for (int x=0; x<norm_img_width; x++) {
-    for (int y=0; x<norm_img_height; y++) {
-      //cVector[0]
+void Image::classify() {
+  int cntTopLeft=0;
+  int cntTopRight=0;
+  int cntBotomLeft=0;
+  int cntBotomRight=0;
+  int cWhite=0;
+  int border = 6;
+
+  for (int x=border; x<norm_img_width-2*border; x++) {
+    for (int y=border; y<norm_img_height-2*border; y++) {
+      cWhite += normImage[x][y];
+      if (x < 0.5*norm_img_width) {
+        if (y < 0.5*norm_img_height) {
+          cntTopLeft += normImage[x][y];
+        } else {
+          cntBotomLeft += normImage[x][y];
+        }
+      } else {
+        if (y < 0.5*norm_img_height) {
+          cntTopRight += normImage[x][y];
+        } else {
+          cntBotomRight += normImage[x][y];
+        }
+      }
     }
   }
+  printf("cntTopLeft: %i, cntTopRight: %i, cntBotomLeft: %i, cntBotomRight: %i\n", cntTopLeft, cntTopRight, cntBotomLeft, cntBotomRight);
 }
