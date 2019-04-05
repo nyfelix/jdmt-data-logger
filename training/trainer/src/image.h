@@ -6,8 +6,8 @@
 #include <math.h>
 
 //Size of input Image
-static const int img_width = 160;
-static const int img_height = 120;
+static const int img_width = 74;
+static const int img_height = 55;
 //Size of normalized and scaled bounding box image
 static const int norm_img_width = 40;
 static const int norm_img_height = 30;
@@ -21,7 +21,7 @@ class Image
     void loadFrom265GrayArray(uint8_t imageArray[]);
     void cropToBoundingBox(); // Compute the bounding box
     void normalize();         // nNormalize image to size of norm_img_widthxnorm_img_width bits
-    void caracterize();
+    void classify();
     void printImage(bool original = false);
     void printNormImage();
     bool cVector [CLASS_VECTOR_SIZE];
