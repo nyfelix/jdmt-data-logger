@@ -10,14 +10,19 @@ def fit_model(data_path, label, X, Y, treshhold):
         Y.append(label)
 
 
+def convert_to_binary_image(grayScale):
+    treshold = grayScale.mean()
+    grayScale[grayScale <= treshold] = 1
+    grayScale[grayScale > treshold] = 0
+    return grayScale
+
+
 def fit_model_binary(data_path, label, X, Y):
     for file_path in glob.glob(data_path):
         im = Image.open(file_path)
         grayScale = np.array(im).flatten()
-        treshold = grayScale.mean()
-        grayScale[grayScale <= treshold] = 1
-        grayScale[grayScale > treshold] = 0
-        X.append(grayScale)
+        binary_image = convert_to_binary_image(grayScale)
+        X.append(binary_image)
         Y.append(label)
 
 
@@ -39,10 +44,8 @@ def predict_binary(data_path, model, label):
     for file_path in glob.glob(data_path):
         im = Image.open(file_path)
         grayScale = np.array(im).flatten()
-        treshold = grayScale.mean()
-        grayScale[grayScale <= treshold] = 1
-        grayScale[grayScale > treshold] = 0
-        print(model.predict([grayScale]), label)
+        binary_image = convert_to_binary_image(grayScale)
+        print(model.predict([binary_image]), label)
 
 
 def predict(data_path, model, label):

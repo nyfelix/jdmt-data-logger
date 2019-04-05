@@ -1,35 +1,32 @@
-from sklearn.linear_model import LogisticRegression
-import glob
-from PIL import Image
+from sklearn import linear_model
 import numpy
-import matplotlib.pyplot as plt
-from extract_data import fit_model_binary, fit_model, fit_model_mean, predict_mean, predict_binary, predict
+from extract_data import convert_to_binary_image
+from data import X_NOK, X_OK
+from extracted_lr_model import predict, predictWithBetas
 
 
-clf_binary = LogisticRegression(random_state=0, solver='lbfgs')
-clf_mean = LogisticRegression(random_state=0, solver='lbfgs')
+X = numpy.concatenate((X_NOK, X_OK), axis=0)
+X = convert_to_binary_image(X[:])
+nofRows, rowSize, colSize = X.shape
+X = numpy.reshape(X, [nofRows, rowSize*colSize])
+Y = numpy.concatenate((numpy.zeros([20]), numpy.ones([59])))
 
-X_Binary = list()
-Y_Binary = list()
-X_Mean = list()
-Y_Mean = list()
 
-print("LR-binary model")
-fit_model_binary("./train-data/OK/*.jpg", 0, X_Binary, Y_Binary)
-fit_model_binary("./train-data/NOK/*.jpg", 1, X_Binary, Y_Binary)
+clf = linear_model.LogisticRegression(C=1e5, solver='lbfgs')
+clf.fit(X, Y)
 
-clf_binary.fit(X_Binary, Y_Binary)
+print(predict(X[0], clf), Y[0])
+print(predict(X[1], clf), Y[1])
+print(predict(X[3], clf), Y[3])
 
-predict_binary("./test-data/OK/*.jpg", clf_binary, 0)
-predict_binary("./test-data/NOK/*.jpg", clf_binary, 1)
+print(predict(X[21], clf), Y[21])
+print(predict(X[22], clf), Y[22])
+print(predict(X[50], clf), Y[50])
+print("extracted...")
+print(predictWithBetas(X[0]), Y[0])
+print(predictWithBetas(X[1]), Y[1])
+print(predictWithBetas(X[3]), Y[3])
 
-print(clf_binary.coef_, clf_binary.intercept_)
-
-print("LR-mean model")
-fit_model_mean("./train-data/OK/*.jpg", 0, X_Mean, Y_Mean)
-fit_model_mean("./train-data/NOK/*.jpg", 1, X_Mean, Y_Mean)
-
-clf_mean.fit(X_Mean, Y_Mean)
-
-predict_mean("./test-data/OK/*.jpg", clf_mean, 0)
-predict_mean("./test-data/NOK/*.jpg", clf_mean, 1)
+print(predictWithBetas(X[21]), Y[21])
+print(predictWithBetas(X[22]), Y[22])
+print(predictWithBetas(X[50]), Y[50])
