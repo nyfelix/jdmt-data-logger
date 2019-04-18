@@ -4,5 +4,6 @@
 #define DEVADDR { 0x26, 0x01, 0x10, 0xCE }
 #define VBATPIN A9
 #define SLEEPTIME_SECONDS 3600
+#define LED_BUILTIN 7
 
 //#define DEBUG

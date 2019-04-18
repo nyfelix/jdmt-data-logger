@@ -9,7 +9,6 @@
 //
 // Modified by Brent Rubell for Adafruit Industries, 2018
 /************************** Configuration ***********************************/
-#include <Arduino.h>
 #include <Debug.h>
 #include <TinyLoRa.h>
 #include <SPI.h>
