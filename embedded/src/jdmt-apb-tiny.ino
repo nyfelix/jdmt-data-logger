@@ -17,6 +17,8 @@
 #include <SI7021.h>
 #include <Adafruit_SleepyDog.h>
 #include <config.h>
+#include <avr/pgmspace.h>
+#include <Camera.h>
 
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
@@ -47,6 +49,7 @@ const unsigned int sendInterval = SLEEPTIME_SECONDS;
 #endif
 
 SI7021 envSensor;
+Camera *cam = new Camera();
 
 void mapToPayload(uint8_t i, float value) {
   // float -> int
@@ -111,11 +114,12 @@ void setup()
   debugLn(" OK");
 
   envSensor.begin();
+  cam->begin();
 }
 
 void loop()
 {
-  digitalWrite(LED_BUILTIN, HIGH);
+  /*digitalWrite(LED_BUILTIN, HIGH);
   debugLn("Sending LoRa Data...");
   preparePayolad();
   lora.sendData(payload, sizeof(payload), lora.frameCounter);
@@ -129,6 +133,28 @@ void loop()
     Watchdog.sleep(sendInterval * 1000);
   #else
     delay(sendInterval * 1000);
-  #endif
+  #endif*/
+  readCamera();
 
+}
+
+void readCamera () {
+  cam->checkCameraModul();
+  cam->cameraOn();
+  debugLn("Camera On");
+   // send data only when you receive data:
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    char readdata = Serial.read();
+    if ( readdata==32){ // 32 in DEC is Space in ASCII
+      debugLn("Picture: ");
+      //counter++;
+      // Action:
+      cam->read();
+    }
+  }
+  delay(5000);
+  //CameraOFF();
+  //Serial.println("Camera OFF");
+  delay(5000);
 }
