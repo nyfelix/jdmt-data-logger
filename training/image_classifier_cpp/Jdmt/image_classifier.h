@@ -25,10 +25,10 @@ private:
 
 inline void image_classifier::compress_image(double** img, const unsigned short nof_rows, const unsigned short nof_columns)
 {
-	for (uint16_t column_index = 0; column_index < nof_columns; column_index++)
+	for (auto column_index = 0; column_index < nof_columns; column_index++)
 	{
 		double row_sum = 0;
-		for (uint16_t row_index = 0; row_index < nof_rows; row_index++)
+		for (auto row_index = 0; row_index < nof_rows; row_index++)
 
 		{
 			row_sum += img[row_index][column_index];
