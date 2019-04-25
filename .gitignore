@@ -1,3 +1,7 @@
 Debug
 packages.config
 *.vcxproj*
+packages
+.vs
+*.sln*
+*.htm

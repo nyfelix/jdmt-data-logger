@@ -12,12 +12,13 @@ public:
 	void compress_image(double **img) const;
 	double predict(double **img, unsigned short nof_rows, unsigned short nof_columns) const;
 	double calculate_treshhold(double **image) const;
-	void convert_to_binary(double **image) const;
+	char* convert_to_number(const bool* binary_image) const;
+	bool* convert_to_binary(double**  image) const;
 
 private:
 	const double*coef_;
-	unsigned short nof_rows_;
-	unsigned short nof_columns_;
+	const unsigned short nof_rows_;
+	const unsigned short nof_columns_;
 	const double euler_ = std::exp(1.0);
 };
 
