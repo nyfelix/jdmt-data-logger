@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "image_classifier.h"
 
 double image_classifier::predict(double** img, const unsigned short nof_rows, const unsigned short nof_columns) const

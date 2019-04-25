@@ -18,10 +18,10 @@ double coef[] = { 0.96162954, 1.5798257, 1.15578957, 0.87683753, -2.0659162, -1.
 			 0.90292049, 0.59783172 };
 
 TEST(Model, predict_ok) {
-	const auto model = new image_classifier{ coef,  54, 74 };
+	const auto model = new image_classifier{ coef, std::exp(1.0), pow };
 	for (auto& index : ok)
 	{
-		model->compress_image(index);
+		model->compress_image(index, 54, 74);
 		const auto prediction = model->predict(index, 1, 74);
 		auto rounded_prediction = int(round(prediction));
 
@@ -33,10 +33,10 @@ TEST(Model, predict_ok) {
 }
 
 TEST(Model, predict_nok) {
-	const auto model = new image_classifier{ coef, 54, 74 };
+	const auto model = new image_classifier{ coef, std::exp(1.0), pow };
 	for (auto& index : nok)
 	{
-		model->compress_image(index);
+		model->compress_image(index, 54, 74);
 		const auto prediction = model->predict(index, 1, 74);
 		auto rounded_prediction = int(round(prediction));
 		EXPECT_EQ(rounded_prediction, 0);
@@ -45,12 +45,12 @@ TEST(Model, predict_nok) {
 }
 
 TEST(Model, convert_to_binary) {
-	const auto model = new image_classifier{ coef, 2, 2 };
-	double *treshold_should_be_two[2] = {
+	const auto model = new image_classifier{ coef,std::exp(1.0), pow };
+	double* treshold_should_be_two[2] = {
 		new double[2] {1,3},
 		new double[2] {3,1},
 	};
-	const auto bin_img = model->convert_to_binary(treshold_should_be_two);
+	const auto bin_img = model->convert_to_binary(treshold_should_be_two, 2, 2);
 	const auto x = new bool[4]{ true, false,false, true };
 	for (auto index = 0; index < 4; index++)
 	{
@@ -60,13 +60,13 @@ TEST(Model, convert_to_binary) {
 }
 
 TEST(Model, convert_to_number) {
-	const auto model = new image_classifier{ coef, 2, 5 };
-	double *treshold_should_be_two[2] = {
+	const auto model = new image_classifier{ coef,std::exp(1.0), pow };
+	double* treshold_should_be_two[2] = {
 		new double[5] {1,3,3,1,1},
 		new double[5] {3,1,1,3,3},
 	};
-	const auto bin_img = model->convert_to_binary(treshold_should_be_two);
-	const auto img_as_number = model->convert_to_number(bin_img);
+	const auto bin_img = model->convert_to_binary(treshold_should_be_two, 2, 5);
+	const auto img_as_number = model->convert_to_number(bin_img, 2, 5);
 	const auto nof_tests = 3;
 	const auto x = new int[nof_tests] { 9, 11, 0 };
 	for (auto index = 0; index < nof_tests; index++)
@@ -77,8 +77,8 @@ TEST(Model, convert_to_number) {
 
 
 TEST(Model, convert_to_number2) {
-	const auto model = new image_classifier{ coef, 54, 74 };
-	const auto bin_img = model->convert_to_binary(ok[6]);
+	const auto model = new image_classifier{ coef ,std::exp(1.0), pow };
+	const auto bin_img = model->convert_to_binary(ok[6], 54, 74);
 
 	for (auto row_index = 0; row_index < 54; row_index++)
 	{
@@ -89,8 +89,8 @@ TEST(Model, convert_to_number2) {
 		printf("\n");
 	}
 
-	const auto img_as_number = model->convert_to_number(bin_img);
-	for (auto index = 0; index < (54 * 74)/4; index++)
+	const auto img_as_number = model->convert_to_number(bin_img, 54, 74);
+	for (auto index = 0; index < (54 * 74) / 4; index++)
 	{
 		printf(" %c ", img_as_number[index]);
 	}

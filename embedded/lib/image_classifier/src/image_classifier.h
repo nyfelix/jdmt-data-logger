@@ -29,7 +29,6 @@ inline void image_classifier::compress_image(double** img, const unsigned short 
 	{
 		double row_sum = 0;
 		for (uint16_t row_index = 0; row_index < nof_rows; row_index++)
-
 		{
 			row_sum += img[row_index][column_index];
 		}
