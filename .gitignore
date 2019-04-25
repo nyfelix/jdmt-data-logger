@@ -5,3 +5,4 @@ packages
 .vs
 *.sln*
 *.htm
+.vscode
