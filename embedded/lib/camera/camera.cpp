@@ -1,17 +1,20 @@
 #include <Camera.h>
 
+
 Camera::Camera() {
   //ToDo: Set Pins in constructor
 }
 
 void Camera::begin() {
-  delay(5000);
+  Serial.println("beginn camera");
   // Analog Comp Output Pin
   pinMode(22,OUTPUT);
   pinMode(13,OUTPUT);
 
+
   //Digital Pin Output
   pinMode(19,OUTPUT);// Enable CameraModul
+  
   pinMode(16,INPUT); // if Low, there is no Cameramodul
   digitalWrite(EnablePowerCameraModule,LOW);// As deafault CameraModul is disabled
 

@@ -20,6 +20,11 @@
 #include <avr/pgmspace.h>
 #include <Camera.h>
 
+#define  DEBUG
+
+enum States{observing, sending, test, emergency};
+States currState = observing;
+
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
 
@@ -36,6 +41,8 @@ uint8_t DevAddr[4] = DEVADDR;
 /************************** Example Begins Here ***********************************/
 // Data Packet to Send to TTN
 unsigned char payload[7];
+
+unsigned char Hellomsg[11] = {"hello LoRa"};
 
 // How many times data transfer should occur, in seconds
 const unsigned int sendInterval = SLEEPTIME_SECONDS;
@@ -89,6 +96,10 @@ void preparePayolad() {
   mapToPayload(4, vbat);
 }
 
+void alert(){
+  currState = emergency; // switch to emergency state after Cameramodul was disconnected
+}
+
 void setup()
 {
   delay(2000);
@@ -99,26 +110,66 @@ void setup()
   #endif
   // Initialize pin LED_BUILTIN as an output
   pinMode(LED_BUILTIN, OUTPUT);
-
+  //defining Interrupt pin
+  pinMode(16, INPUT);
+  attachInterrupt(digitalPinToInterrupt(16), alert(), FALLING);// Set interrupt pin for falling, calls to alert for switching to emergency State
   // Initialize LoRa
   debug("Starting LoRa...");
   // define multi-channel sending
   lora.setChannel(MULTI);
   // set datarate
   lora.setDatarate(SF7BW125);
+  /* Disabled because LoRa-Modul is broken
   if(!lora.begin())
   {
     debugLn("Failed: Check your radio");
     while(true);
   }
   debugLn(" OK");
+  */
+  //lora.sendData(Hellomsg, sizeof(Hellomsg), lora.frameCounter);
 
   envSensor.begin();
+  debugLn("Sensor initialized");
   cam->begin();
+  debugLn("cam obj created");
+  currState=observing;
 }
+
 
 void loop()
 {
+  switch (currState) { //Statemachine
+    
+    case observing:{ // u gathering and processing information with sleep pauses
+      debugLn("observing...");
+      readCamera();
+
+      break; 
+    }
+      
+    case sending:{ // periodical sending information over LoRa
+        debugLn("sending...");
+
+      break;
+    } 
+
+    case test:{ 
+        debugLn("testing...");
+
+      break;
+    }
+
+    case emergency:{ 
+        debugLn("testing...");
+
+
+
+      break;
+    }
+
+    delay(1000);
+  }       
   /*digitalWrite(LED_BUILTIN, HIGH);
   debugLn("Sending LoRa Data...");
   preparePayolad();
@@ -132,8 +183,9 @@ void loop()
     Watchdog.sleep(sendInterval * 1000);
   #else
     delay(sendInterval * 1000);
-  #endif*/
-  readCamera();
+  #endif
+  */
+  
 
 }
 
