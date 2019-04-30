@@ -15,7 +15,7 @@ void Camera::begin() {
   //Digital Pin Output
   pinMode(19,OUTPUT);// Enable CameraModul
   
-  pinMode(16,INPUT); // if Low, there is no Cameramodul
+  //pinMode(16,INPUT); // if Low, there is no Cameramodul
   digitalWrite(EnablePowerCameraModule,LOW);// As deafault CameraModul is disabled
 
   // Config AC Clock

@@ -24,7 +24,7 @@
 
 enum States{observing, sending, test, emergency};
 States currState = observing;
-
+volatile bool alertTrigger=false;
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
 
@@ -97,8 +97,11 @@ void preparePayolad() {
 }
 
 void alert(){
+  alertTrigger=false;
   currState = emergency; // switch to emergency state after Cameramodul was disconnected
 }
+
+
 
 void setup()
 {
@@ -112,7 +115,7 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   //defining Interrupt pin
   pinMode(16, INPUT);
-  attachInterrupt(digitalPinToInterrupt(16), alert(), FALLING);// Set interrupt pin for falling, calls to alert for switching to emergency State
+  attachInterrupt(digitalPinToInterrupt(16), alert, FALLING);// Set interrupt pin for falling, calls to alert for switching to emergency State
   // Initialize LoRa
   debug("Starting LoRa...");
   // define multi-channel sending
@@ -144,31 +147,37 @@ void loop()
     case observing:{ // u gathering and processing information with sleep pauses
       debugLn("observing...");
       readCamera();
-
+      if(alertTrigger==true){
+        //currState = emergency;
+      }
+      debugLn(alertTrigger);
+      delay(2000);
       break; 
     }
       
     case sending:{ // periodical sending information over LoRa
         debugLn("sending...");
-
+        delay(2000);
       break;
     } 
 
     case test:{ 
         debugLn("testing...");
-
+        delay(2000);
       break;
     }
+    
 
     case emergency:{ 
-        debugLn("testing...");
+        debugLn("emergency...");
+        delay(2000);
 
 
 
       break;
     }
 
-    delay(1000);
+    
   }       
   /*digitalWrite(LED_BUILTIN, HIGH);
   debugLn("Sending LoRa Data...");
@@ -193,7 +202,12 @@ void readCamera () {
   cam->checkCameraModul();
   cam->cameraOn();
   debugLn("Camera On");
+  cam->read();
+  delay(50);
+  cam->cameraOff()
+  debugLn("Camera OFF");
    // send data only when you receive data:
+   /*
   if (Serial.available() > 0) {
     // read the incoming byte:
     char readdata = Serial.read();
@@ -204,8 +218,10 @@ void readCamera () {
       cam->read();
     }
   }
-  delay(5000);
+  */
+  //delay(5000);
   //CameraOFF();
   //Serial.println("Camera OFF");
-  delay(5000);
+  //delay(5000);
 }
+

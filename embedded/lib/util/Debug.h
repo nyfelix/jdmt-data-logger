@@ -13,7 +13,7 @@
 #endif
 
 #ifdef DEBUG
-#define debugLn(...) Serial.println(__VA_ARGS__)
+#define debugLn(...); Serial.println(__VA_ARGS__)
 #else
 #define debugLn(...)
 #endif
