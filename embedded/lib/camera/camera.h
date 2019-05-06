@@ -11,7 +11,7 @@ class Camera
     void read();
     void cameraOn();
     void cameraOff();
-    void checkCameraModul();
+    bool checkCameraModul();
     void AC_Handler();
 
   protected:

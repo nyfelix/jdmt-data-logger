@@ -20,11 +20,17 @@
 #include <avr/pgmspace.h>
 #include <Camera.h>
 
+
 #define  DEBUG
 
 enum States{observing, sending, test, emergency};
 States currState = observing;
-volatile bool alertTrigger=false;
+volatile bool sleepbit=false;
+
+int sleepcounter=0;
+int sleepinterval=30000; // duration of watchdochg sleeptime in ms
+int sleepfactor=1;// factor of how mani times the Sleepmodus should start before taking a new picture
+bool cameraModulattached;
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
 
@@ -97,7 +103,7 @@ void preparePayolad() {
 }
 
 void alert(){
-  alertTrigger=false;
+  sleepbit=false;
   currState = emergency; // switch to emergency state after Cameramodul was disconnected
 }
 
@@ -145,6 +151,29 @@ void loop()
   switch (currState) { //Statemachine
     
     case observing:{ // u gathering and processing information with sleep pauses
+      // sleeping for the given time = sleepfactor*sendInterval
+      while (sleepbit=true){
+        Watchdog.sleep(sleepinterval);
+        sleepcounter++;
+
+        if(sleepcounter==sleepfactor){
+          sleepbit=true;
+
+        }
+      }
+
+      // checking why the device woke up
+      cameraModulattached=cam->checkCameraModul()
+
+      if(cameraModulattached==false){ //if there is no Camermodul exit the observing state and entering the emergency state
+        currState=emergency;
+        break;
+      }
+
+      //taking a picture 
+
+      cam->
+      
       debugLn("observing...");
       readCamera();
       if(alertTrigger==true){

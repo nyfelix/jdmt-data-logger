@@ -125,12 +125,13 @@ void Camera::cameraOff(){
    digitalWrite(19, LOW);
 }
 
-void Camera::checkCameraModul(){
+bool Camera::checkCameraModul(){
   if(digitalRead(16)== LOW){
     Serial.println("there is no CameraModul");
-    return;
+    return false;
   }
   Serial.println("CameraModul OK");
+  return true;
 }
 
 void Camera::read() {
