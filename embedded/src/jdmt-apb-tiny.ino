@@ -19,6 +19,7 @@
 #include <config.h>
 #include <avr/pgmspace.h>
 #include <Camera.h>
+#include <image_classifier.h>
 
 
 #define  DEBUG
@@ -31,6 +32,8 @@ int sleepcounter=0;
 int sleepinterval=30000; // duration of watchdochg sleeptime in ms
 int sleepfactor=1;// factor of how mani times the Sleepmodus should start before taking a new picture
 bool cameraModulattached;
+bool batteryDisplayOk;
+int picturesTillSend=1; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken 
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
 
@@ -103,8 +106,7 @@ void preparePayolad() {
 }
 
 void alert(){
-  sleepbit=false;
-  currState = emergency; // switch to emergency state after Cameramodul was disconnected
+  sleepbit=false; // exit the while loop for switch to emergency state 
 }
 
 
@@ -128,14 +130,14 @@ void setup()
   lora.setChannel(MULTI);
   // set datarate
   lora.setDatarate(SF7BW125);
-  /* Disabled because LoRa-Modul is broken
+   Disabled because LoRa-Modul is broken
   if(!lora.begin())
   {
     debugLn("Failed: Check your radio");
     while(true);
   }
   debugLn(" OK");
-  */
+  
   //lora.sendData(Hellomsg, sizeof(Hellomsg), lora.frameCounter);
 
   envSensor.begin();
@@ -152,34 +154,50 @@ void loop()
     
     case observing:{ // u gathering and processing information with sleep pauses
       // sleeping for the given time = sleepfactor*sendInterval
-      while (sleepbit=true){
+      debugLn("observing...");
+      /*
+      while (sleepbit==true){
+        debugLn("going to sleep");
+        digitalWrite(LED_BUILTIN, LOW); 
+        //delay(5000);
         Watchdog.sleep(sleepinterval);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(1000); 
         sleepcounter++;
+        debugLn(sleepcounter);
 
-        if(sleepcounter==sleepfactor){
-          sleepbit=true;
-
+        if(sleepcounter>=sleepfactor){
+          sleepbit=false;
+          
+          sleepcounter=0; // reset the sleepcounter
         }
       }
-
-      // checking why the device woke up
-      cameraModulattached=cam->checkCameraModul()
-
-      if(cameraModulattached==false){ //if there is no Camermodul exit the observing state and entering the emergency state
-        currState=emergency;
-        break;
-      }
-
-      //taking a picture 
-
-      cam->
       
-      debugLn("observing...");
-      readCamera();
-      if(alertTrigger==true){
+      */
+      
+      sleepbit=true;// reset sleepbit
+
+      
+
+       cam->cameraOn(); // start up camera
+       delay(100); //Camera start up time
+
+       cam->read(); //taking a picture
+      //evaluation the picture
+
+      //if batteryDisplayOk== false
+
+      //if batteryDisplayOk== true
+
+      
+     
+      
+      
+      /*if(alertTrigger==true){
         //currState = emergency;
       }
       debugLn(alertTrigger);
+      */
       delay(2000);
       break; 
     }

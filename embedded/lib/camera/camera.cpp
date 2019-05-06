@@ -134,8 +134,32 @@ bool Camera::checkCameraModul(){
   return true;
 }
 
-void Camera::read() {
-    return;
+int * Camera::read() {
+   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
+    for (int v = 4; v <(rows-2); v++) {
+      for (int u = 6; u < (columns); u++) {
+        Serial.print(sample0001[v][u]);
+        Serial.print("\t");
+        delay(1);        // delay in between reads for stability 
+        }
+        Serial.println();
+    }
+     Serial.println(); 
+    /*Disable Array print
+    Serial.print("const uint8_t sample0001_map[] = {"); 
+    for (int v = 4; v <(rows-2); v++) {
+      for (int u = 6; u < (columns); u++) {
+        Serial.print(sample0001[v][u]);
+        Serial.print(",");
+        delay(1);        // delay in between reads for stability 
+        }
+       }
+       Serial.print("}");  
+     Serial.println();
+     */
+      
+     AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
+    return sample0001;
 }
 
 
