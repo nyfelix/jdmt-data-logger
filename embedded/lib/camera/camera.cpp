@@ -1,22 +1,23 @@
 #include <Camera.h>
 
 
-Camera::Camera() {
+Camera::Camera(int CompPin1, int CompPin2, int CameraModulPower, int Cameramodulattached ) {
   //ToDo: Set Pins in constructor
+   // Analog Comp Output Pin
+  pinMode(CompPin1,OUTPUT);//22
+  pinMode(CompPin2,OUTPUT);//13
+
+
+  //Digital Pin Output
+  pinMode(CameraModulPower,OUTPUT);// Enable CameraModul//19
+  
+  //pinMode(16,INPUT); // if Low, there is no Cameramodul
+  digitalWrite(Cameramodulattached,LOW);// 16
 }
 
 void Camera::begin() {
   Serial.println("beginn camera");
-  // Analog Comp Output Pin
-  pinMode(22,OUTPUT);
-  pinMode(13,OUTPUT);
-
-
-  //Digital Pin Output
-  pinMode(19,OUTPUT);// Enable CameraModul
-  
-  //pinMode(16,INPUT); // if Low, there is no Cameramodul
-  digitalWrite(EnablePowerCameraModule,LOW);// As deafault CameraModul is disabled
+ 
 
   // Config AC Clock
   // PM->APBCMASK.bit.AC = 1;    // this does not work, don't know why
@@ -116,17 +117,17 @@ void Camera::begin() {
 
 void Camera::cameraOn(){
   digitalWrite(EnablePowerCameraModule,HIGH);
-  digitalWrite(19, HIGH);
+  digitalWrite(CameraModulPower, HIGH);
 
 }
 
 void Camera::cameraOff(){
    digitalWrite(EnablePowerCameraModule,LOW);
-   digitalWrite(19, LOW);
+   digitalWrite(CameraModulPower, LOW);
 }
 
 bool Camera::checkCameraModul(){
-  if(digitalRead(16)== LOW){
+  if(digitalRead(Cameramodulattached)== LOW){
     Serial.println("there is no CameraModul");
     return false;
   }
@@ -134,7 +135,30 @@ bool Camera::checkCameraModul(){
   return true;
 }
 
-int * Camera::read() {
+
+//typedef uint8_t picture[][5];
+
+picture * Camera::read(void){
+  AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt
+  //static uint8_t picture[5][5];
+   for (int v = 4; v <(rows-2); v++) {
+      for (int u = 6; u < (columns); u++) {
+        Serial.print(sample0001[v][u]);
+        Serial.print("\t");
+        delay(1);        // delay in between reads for stability 
+        }
+        Serial.println();
+    }
+
+  AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
+  return &sample0001;
+}
+
+
+
+
+/*
+uint8_t * Camera::read() {
    AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
     for (int v = 4; v <(rows-2); v++) {
       for (int u = 6; u < (columns); u++) {
@@ -145,7 +169,7 @@ int * Camera::read() {
         Serial.println();
     }
      Serial.println(); 
-    /*Disable Array print
+    //Disable Array print
     Serial.print("const uint8_t sample0001_map[] = {"); 
     for (int v = 4; v <(rows-2); v++) {
       for (int u = 6; u < (columns); u++) {
@@ -156,13 +180,14 @@ int * Camera::read() {
        }
        Serial.print("}");  
      Serial.println();
-     */
+     
       
      AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
+     picadress=sample0001;
     return sample0001;
 }
 
-
+*/
 void Camera::AC_Handler() {
   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt
   if (frame == 0) {

@@ -2,17 +2,20 @@
 #define camera_h
 
 #include <Arduino.h>
+typedef uint8_t picture[60][80];
 
 class Camera
 {
   public:
-    Camera();
+    Camera(int,int,int,int);
     void begin();
-    void read();
+    picture* read(void);
     void cameraOn();
     void cameraOff();
     bool checkCameraModul();
     void AC_Handler();
+
+    int CompPin1, CompPin2, CameraModulPower, Cameramodulattached;
 
   protected:
     int readdata=0;
@@ -22,6 +25,8 @@ class Camera
     int framestarttot = 0;
     int frametreshold = 150; // 150
     uint8_t sample0001 [60][80] = { {0},{0} }; //vorher byte 80 rows, 120 columns
+    
+    //uint8_t (*)[80]** picadress;
     volatile int rows = 60;  // rows from above array
     volatile int columns = 80; // colums from above array
     int done = 0;

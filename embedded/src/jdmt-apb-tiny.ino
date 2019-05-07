@@ -19,23 +19,41 @@
 #include <config.h>
 #include <avr/pgmspace.h>
 #include <Camera.h>
-#include <image_classifier.h>
+
+#include <math.h> // for pow
 
 
 #define  DEBUG
 
 enum States{observing, sending, test, emergency};
 States currState = observing;
-volatile bool sleepbit=false;
+volatile bool sleepbit=false; //first loop without sleeping
 
 int sleepcounter=0;
-int sleepinterval=30000; // duration of watchdochg sleeptime in ms
-int sleepfactor=1;// factor of how mani times the Sleepmodus should start before taking a new picture
+int Sleepduration_s=30; // duration of watchdochg sleeptime in ms
+//int sleepfactor=1;// factor of how mani times the Sleepmodus should start before taking a new picture
 bool cameraModulattached;
 bool batteryDisplayOk;
-int picturesTillSend=1; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken 
+int picturesTillSend=1; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
+ 
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
+
+double coef[] = {0.96162954, 1.5798257, 1.15578957, 0.87683753, -2.0659162, -1.79649967,
+				 -1.99569325, -2.12694536, -2.03716275, -1.84588508, -2.18402691, -1.55599748,
+				 -1.26471973, -1.42254674, 1.10134503, 0.98292626, 1.24841439, 0.94516222,
+				 1.16034822, 1.10906249, 0.99024727, 1.28927712, 1.3650571, 1.11811895,
+				 1.61958369, 0.81111923, 0.70412172, 0.57261735, 0.67881138, 0.46075267,
+				 0.17998909, 0.56560843, 0.53451477, 0.46506116, -0.60542082, -0.38136447,
+				 -0.18131959, -0.26099146, -0.2399914, -0.2635798, 0.01175717, 0.00743979,
+				 0.30875504, -0.09764507, -0.32788512, -0.80935435, -0.87904561, -0.6895562,
+				 -0.5326027, -1.06616436, -0.68904028, -0.64145815, -0.89266816, -1.20789193,
+				 -0.27950533, -0.27384109, 0.34178456, 0.21106685, -0.01997451, 0.13528488,
+				 0.01200242, 0.26121166, 0.34261025, 0.87087366, 0.96592315, 0.77510937,
+				 0.5226508, 0.41862142, 0.44527862, 0.46403118, 0.34592521, 0.61041455,
+				 0.90292049, 0.59783172};
+
+
 
 // Network Session Key (MSB)
 uint8_t NwkSkey[16] = NWKSKEY;
@@ -65,7 +83,8 @@ const unsigned int sendInterval = SLEEPTIME_SECONDS;
 #endif
 
 SI7021 envSensor;
-Camera *cam = new Camera();
+Camera *cam = new Camera(22,13,19,16);
+//image_classifier *img = new image_classifier(coef, exp(1), pow);
 
 void mapToPayload(uint8_t i, float value) {
   // float -> int
@@ -108,8 +127,37 @@ void preparePayolad() {
 void alert(){
   sleepbit=false; // exit the while loop for switch to emergency state 
 }
+/*
+bool analyseImage()
+{
+	const auto model = new logistic_regression{coef, 1, 74, exp(1), pow};
 
+	
+	const auto image = new image_manipulator{index, 54, 74};
+	const auto prediction = model->predict(image->compress());
+	auto rounded_prediction == int(round(prediction));
 
+	return rounded_prediction;
+}
+
+*/
+void watchdogSleep(int time_s, volatile bool*sleepflag){
+
+  double sleep_rep=time_s/30;
+  while (*sleepflag==true){
+        Watchdog.sleep(30000);//sleeptime in ms
+        
+        
+        sleepcounter++;
+
+        if(sleepcounter>=sleep_rep){
+          *sleepflag=false;
+          
+          sleepcounter=0; // reset the sleepcounter
+        }
+      }
+       *sleepflag=true;// reset sleepbit
+}
 
 void setup()
 {
@@ -130,8 +178,8 @@ void setup()
   lora.setChannel(MULTI);
   // set datarate
   lora.setDatarate(SF7BW125);
-   Disabled because LoRa-Modul is broken
-  if(!lora.begin())
+   //Disabled because LoRa-Modul is broken
+ /* if(!lora.begin())
   {
     debugLn("Failed: Check your radio");
     while(true);
@@ -139,7 +187,7 @@ void setup()
   debugLn(" OK");
   
   //lora.sendData(Hellomsg, sizeof(Hellomsg), lora.frameCounter);
-
+*/
   envSensor.begin();
   debugLn("Sensor initialized");
   cam->begin();
@@ -155,7 +203,7 @@ void loop()
     case observing:{ // u gathering and processing information with sleep pauses
       // sleeping for the given time = sleepfactor*sendInterval
       debugLn("observing...");
-      /*
+      /* OUTCOMMENTED BUT IT WORKS
       while (sleepbit==true){
         debugLn("going to sleep");
         digitalWrite(LED_BUILTIN, LOW); 
@@ -173,20 +221,32 @@ void loop()
         }
       }
       
-      */
+      
       
       sleepbit=true;// reset sleepbit
 
-      
+      */
+      digitalWrite(LED_BUILTIN,LOW);
+      watchdogSleep(30,&sleepbit);
+      digitalWrite(LED_BUILTIN,HIGH);
 
        cam->cameraOn(); // start up camera
        delay(100); //Camera start up time
+       cam->cameraOff();
+       delay(10000);
 
-       cam->read(); //taking a picture
+       //cam->read(); //taking a picture
       //evaluation the picture
+      //Serial.println(img->predict(((double**)cam->read()),60,80));
+      Serial.println("true or false");
+      Serial.print("sleepflag: ");
+      Serial.println(sleepbit);
 
       //if batteryDisplayOk== false
-
+      batteryDisplayOk=true;
+      if(batteryDisplayOk==false){
+        currState=emergency;
+      }
       //if batteryDisplayOk== true
 
       
