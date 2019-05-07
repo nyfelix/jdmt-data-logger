@@ -12,7 +12,7 @@ class Camera
     picture* read(void);
     void cameraOn();
     void cameraOff();
-    bool checkCameraModul();
+    bool is_there_CameraModul();
     void AC_Handler();
 
     int CompPin1, CompPin2, CameraModulPower, Cameramodulattached;

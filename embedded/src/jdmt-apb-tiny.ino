@@ -34,6 +34,7 @@ int Sleepduration_s=30; // duration of watchdochg sleeptime in ms
 //int sleepfactor=1;// factor of how mani times the Sleepmodus should start before taking a new picture
 bool cameraModulattached;
 bool batteryDisplayOk;
+int pictures_taken_till_last_send=0;
 int picturesTillSend=1; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
  
 // Visit your thethingsnetwork.org device console
@@ -201,31 +202,8 @@ void loop()
   switch (currState) { //Statemachine
     
     case observing:{ // u gathering and processing information with sleep pauses
-      // sleeping for the given time = sleepfactor*sendInterval
       debugLn("observing...");
-      /* OUTCOMMENTED BUT IT WORKS
-      while (sleepbit==true){
-        debugLn("going to sleep");
-        digitalWrite(LED_BUILTIN, LOW); 
-        //delay(5000);
-        Watchdog.sleep(sleepinterval);
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(1000); 
-        sleepcounter++;
-        debugLn(sleepcounter);
 
-        if(sleepcounter>=sleepfactor){
-          sleepbit=false;
-          
-          sleepcounter=0; // reset the sleepcounter
-        }
-      }
-      
-      
-      
-      sleepbit=true;// reset sleepbit
-
-      */
       digitalWrite(LED_BUILTIN,LOW);
       watchdogSleep(30,&sleepbit);
       digitalWrite(LED_BUILTIN,HIGH);
@@ -238,33 +216,50 @@ void loop()
        //cam->read(); //taking a picture
       //evaluation the picture
       //Serial.println(img->predict(((double**)cam->read()),60,80));
+      pictures_taken_till_last_send++;
+
       Serial.println("true or false");
       Serial.print("sleepflag: ");
       Serial.println(sleepbit);
 
       //if batteryDisplayOk== false
       batteryDisplayOk=true;
-      if(batteryDisplayOk==false){
+      if(batteryDisplayOk==false||cam->is_there_CameraModul()==false){//either battary is bad or cameramodul is not attached switch to emergency state
         currState=emergency;
+        break;
       }
       //if batteryDisplayOk== true
 
-      
-     
-      
-      
+      if(pictures_taken_till_last_send>=picturesTillSend){
+        currState=sending;
+        pictures_taken_till_last_send=0; //reset picture Counter
+        break;
+      }
+
+      delay(2000);
+      break; 
       /*if(alertTrigger==true){
         //currState = emergency;
       }
       debugLn(alertTrigger);
       */
-      delay(2000);
-      break; 
+    
     }
       
     case sending:{ // periodical sending information over LoRa
-        debugLn("sending...");
-        delay(2000);
+      debugLn("sending...");
+      delay(2000);
+      digitalWrite(LED_BUILTIN, HIGH);
+      debugLn("Sending LoRa Data...");
+      preparePayolad();
+      lora.sendData(payload, sizeof(payload), lora.frameCounter);
+      debug("Frame Counter: "); 
+      debugLn(lora.frameCounter);
+      lora.frameCounter++;
+      delay(1000);
+      digitalWrite(LED_BUILTIN, LOW);
+      debugLn("delaying...");
+      currState=observing;
       break;
     } 
 
@@ -276,11 +271,18 @@ void loop()
     
 
     case emergency:{ 
-        debugLn("emergency...");
-        delay(2000);
-
-
-
+      debugLn("emergency...");
+      delay(2000);
+      digitalWrite(LED_BUILTIN, HIGH);
+      debugLn("Sending LoRa Data...");
+      preparePayolad();
+      lora.sendData(payload, sizeof(payload), lora.frameCounter);
+      debug("Frame Counter: "); 
+      debugLn(lora.frameCounter);
+      lora.frameCounter++;
+      delay(1000);
+      digitalWrite(LED_BUILTIN, LOW);
+      debugLn("delaying...");
       break;
     }
 
@@ -303,32 +305,5 @@ void loop()
   */
   
 
-}
-
-void readCamera () {
-  cam->checkCameraModul();
-  cam->cameraOn();
-  debugLn("Camera On");
-  cam->read();
-  delay(50);
-  cam->cameraOff()
-  debugLn("Camera OFF");
-   // send data only when you receive data:
-   /*
-  if (Serial.available() > 0) {
-    // read the incoming byte:
-    char readdata = Serial.read();
-    if ( readdata==32){ // 32 in DEC is Space in ASCII
-      debugLn("Picture: ");
-      //counter++;
-      // Action:
-      cam->read();
-    }
-  }
-  */
-  //delay(5000);
-  //CameraOFF();
-  //Serial.println("Camera OFF");
-  //delay(5000);
 }
 
