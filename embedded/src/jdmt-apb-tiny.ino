@@ -19,15 +19,18 @@
 #include <config.h>
 #include <avr/pgmspace.h>
 #include <Camera.h>
+#include <image_manipulator.h>
+#include <logistic_regression.h>
 
 #include <math.h> // for pow
 
 
 #define  DEBUG
 
-enum States{observing, sending, test, emergency};
+enum States{observing, sending, testing, emergency};
 States currState = observing;
 volatile bool sleepbit=false; //first loop without sleeping
+volatile bool testbit=false; //normal mode is no test
 
 int sleepcounter=0;
 int Sleepduration_s=30; // duration of watchdochg sleeptime in ms
@@ -35,7 +38,7 @@ int Sleepduration_s=30; // duration of watchdochg sleeptime in ms
 bool cameraModulattached;
 bool batteryDisplayOk;
 int pictures_taken_till_last_send=0;
-int picturesTillSend=1; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
+int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
  
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
@@ -85,6 +88,7 @@ const unsigned int sendInterval = SLEEPTIME_SECONDS;
 
 SI7021 envSensor;
 Camera *cam = new Camera(22,13,19,16);
+const auto model = new logistic_regression(coef, 1, 74, exp(1), pow);
 //image_classifier *img = new image_classifier(coef, exp(1), pow);
 
 void mapToPayload(uint8_t i, float value) {
@@ -128,51 +132,62 @@ void preparePayolad() {
 void alert(){
   sleepbit=false; // exit the while loop for switch to emergency state 
 }
+
+void test(){
+  sleepbit=false;
+  testbit=true;
+}
+
 /*
 bool analyseImage()
 {
-	const auto model = new logistic_regression{coef, 1, 74, exp(1), pow};
+	
 
 	
 	const auto image = new image_manipulator{index, 54, 74};
 	const auto prediction = model->predict(image->compress());
-	auto rounded_prediction == int(round(prediction));
+	auto rounded_prediction = int(round(prediction));
 
 	return rounded_prediction;
 }
-
 */
+
+
 void watchdogSleep(int time_s, volatile bool*sleepflag){
 
   double sleep_rep=time_s/30;
   while (*sleepflag==true){
-        Watchdog.sleep(30000);//sleeptime in ms
-        
-        
-        sleepcounter++;
-
-        if(sleepcounter>=sleep_rep){
-          *sleepflag=false;
+    Watchdog.sleep(30000);//sleeptime in ms  
+    sleepcounter++;
+    if(sleepcounter>=sleep_rep){
+      *sleepflag=false;
           
-          sleepcounter=0; // reset the sleepcounter
-        }
-      }
-       *sleepflag=true;// reset sleepbit
+      sleepcounter=0; // reset the sleepcounter
+    }
+  }
+  
+  *sleepflag=true;// reset sleepbit
 }
 
 void setup()
 {
   delay(2000);
-
-  #ifdef DEBUG
+   #ifdef DEBUG
     Serial.begin(9600);
-    while (! Serial);
-  #endif
+    while (! Serial){
+      digitalWrite(LED_BUILTIN,LOW);
+    } ;
+    digitalWrite(LED_BUILTIN,HIGH);
+    
+ #endif
+  debugLn("hello");
+  //Serial.begin(9600);
   // Initialize pin LED_BUILTIN as an output
   pinMode(LED_BUILTIN, OUTPUT);
   //defining Interrupt pin
   pinMode(16, INPUT);
-  attachInterrupt(digitalPinToInterrupt(16), alert, FALLING);// Set interrupt pin for falling, calls to alert for switching to emergency State
+  //attachInterrupt(digitalPinToInterrupt(16), alert, LOW);// Set interrupt pin for falling, calls to alert for switching to emergency State
+  //attachInterrupt(digitalPinToInterrupt(18), test, RISING);
   // Initialize LoRa
   debug("Starting LoRa...");
   // define multi-channel sending
@@ -180,7 +195,7 @@ void setup()
   // set datarate
   lora.setDatarate(SF7BW125);
    //Disabled because LoRa-Modul is broken
- /* if(!lora.begin())
+  if(!lora.begin())
   {
     debugLn("Failed: Check your radio");
     while(true);
@@ -188,7 +203,7 @@ void setup()
   debugLn(" OK");
   
   //lora.sendData(Hellomsg, sizeof(Hellomsg), lora.frameCounter);
-*/
+
   envSensor.begin();
   debugLn("Sensor initialized");
   cam->begin();
@@ -197,6 +212,9 @@ void setup()
 }
 
 
+void bloop(){
+
+}
 void loop()
 {
   switch (currState) { //Statemachine
@@ -206,28 +224,54 @@ void loop()
 
       digitalWrite(LED_BUILTIN,LOW);
       watchdogSleep(30,&sleepbit);
+      //delay(10000);
       digitalWrite(LED_BUILTIN,HIGH);
+      debugLn("end of sleep");
+      
+      if(testbit==true){
+        currState=testing;
+        testbit=false;
+        break;
+      }
+      
 
        cam->cameraOn(); // start up camera
-       delay(100); //Camera start up time
-       cam->cameraOff();
-       delay(10000);
+       debugLn("cam on");
+       /*
+      const auto image = new image_manipulator{((double**)cam->read()), 54, 74};// casting uint8_t** from return of cam->read to double** 
+      const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
+	    //auto rounded_prediction = int(round(prediction));
+      debugLn(int(round(prediction))); //print out picture
+      /*
+      ADD HERE BATTERY
+      */
 
-       //cam->read(); //taking a picture
+        //cam->read(); //taking a picture
       //evaluation the picture
       //Serial.println(img->predict(((double**)cam->read()),60,80));
       pictures_taken_till_last_send++;
+       delay(100); //Camera start up time
+       cam->cameraOff();
+       //delay(10000);
 
-      Serial.println("true or false");
-      Serial.print("sleepflag: ");
-      Serial.println(sleepbit);
+       
+
+      debugLn("true or false");
+      debugLn("sleepflag: ");
+      debugLn(sleepbit);
+      debugLn(cam->is_there_CameraModul());
 
       //if batteryDisplayOk== false
+      
       batteryDisplayOk=true;
+      
       if(batteryDisplayOk==false||cam->is_there_CameraModul()==false){//either battary is bad or cameramodul is not attached switch to emergency state
         currState=emergency;
         break;
       }
+      
+    
+      
       //if batteryDisplayOk== true
 
       if(pictures_taken_till_last_send>=picturesTillSend){
@@ -263,9 +307,10 @@ void loop()
       break;
     } 
 
-    case test:{ 
-        debugLn("testing...");
-        delay(2000);
+    case testing:{ 
+      debugLn("testing...");
+      delay(2000);
+      currState=observing;
       break;
     }
     
@@ -283,27 +328,12 @@ void loop()
       delay(1000);
       digitalWrite(LED_BUILTIN, LOW);
       debugLn("delaying...");
+      delay(5000);
       break;
     }
 
     
   }       
-  /*digitalWrite(LED_BUILTIN, HIGH);
-  debugLn("Sending LoRa Data...");
-  preparePayolad();
-  lora.sendData(payload, sizeof(payload), lora.frameCounter);
-  debug("Frame Counter: "); debugLn(lora.frameCounter);
-  lora.frameCounter++;
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  debugLn("delaying...");
-  #ifndef DEBUG
-    Watchdog.sleep(sendInterval * 1000);
-  #else
-    delay(sendInterval * 1000);
-  #endif
-  */
   
-
 }
 

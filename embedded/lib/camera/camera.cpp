@@ -1,8 +1,14 @@
 #include <Camera.h>
 
 
-Camera::Camera(int CompPin1, int CompPin2, int CameraModulPower, int Cameramodulattached ) {
+Camera::Camera(int CompPIN1, int CompPIN2, int Camera_Modul_Power, int Camera_modul_attached ) {
   //ToDo: Set Pins in constructor
+
+
+  CompPin1=CompPIN1;
+  CompPin2=CompPIN2;
+  CameraModulPower=Camera_Modul_Power;
+  CameraModulPower=Camera_modul_attached;
    // Analog Comp Output Pin
   pinMode(CompPin1,OUTPUT);//22
   pinMode(CompPin2,OUTPUT);//13

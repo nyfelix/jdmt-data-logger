@@ -7,7 +7,7 @@ typedef uint8_t picture[60][80];
 class Camera
 {
   public:
-    Camera(int,int,int,int);
+    Camera(int CompPin1, int CompPin2,int CameraModulPower,int Cameramodulattached);
     void begin();
     picture* read(void);
     void cameraOn();
@@ -15,9 +15,10 @@ class Camera
     bool is_there_CameraModul();
     void AC_Handler();
 
-    int CompPin1, CompPin2, CameraModulPower, Cameramodulattached;
+    
 
   protected:
+    int CompPin1, CompPin2, CameraModulPower, Cameramodulattached;
     int readdata=0;
     int counter=0;
     double samples = 8;
