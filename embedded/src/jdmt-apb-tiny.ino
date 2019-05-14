@@ -39,7 +39,7 @@ bool cameraModulattached;
 bool batteryDisplayOk;
 int pictures_taken_till_last_send=0;
 int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
- 
+
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
 
@@ -71,12 +71,12 @@ uint8_t DevAddr[4] = DEVADDR;
 
 /************************** Example Begins Here ***********************************/
 // Data Packet to Send to TTN
+
 unsigned char payload[7];
 
 unsigned char Hellomsg[11] = {"hello LoRa"};
 
-// How many times data transfer should occur, in seconds
-const unsigned int sendInterval = SLEEPTIME_SECONDS;
+
 
 #ifdef FEATHER32U4
   // Pinout for Adafruit Feather 32u4 LoRa
@@ -88,8 +88,8 @@ const unsigned int sendInterval = SLEEPTIME_SECONDS;
 
 SI7021 envSensor;
 Camera *cam = new Camera(22,13,19,16);
-const auto model = new logistic_regression(coef, 1, 74, exp(1), pow);
-//image_classifier *img = new image_classifier(coef, exp(1), pow);
+//const auto model = new logistic_regression(coef, 1, 74, exp(1), pow);
+
 
 void mapToPayload(uint8_t i, float value) {
   // float -> int
@@ -151,8 +151,7 @@ bool analyseImage()
 	return rounded_prediction;
 }
 */
-
-
+/*
 void watchdogSleep(int time_s, volatile bool*sleepflag){
 
   double sleep_rep=time_s/30;
@@ -168,24 +167,25 @@ void watchdogSleep(int time_s, volatile bool*sleepflag){
   
   *sleepflag=true;// reset sleepbit
 }
-
+*/
 void setup()
 {
   delay(2000);
+  Serial.begin(9600);
+  
    #ifdef DEBUG
     Serial.begin(9600);
     while (! Serial){
       digitalWrite(LED_BUILTIN,LOW);
     } ;
-    digitalWrite(LED_BUILTIN,HIGH);
-    
+    digitalWrite(LED_BUILTIN,HIGH); 
  #endif
+ 
   debugLn("hello");
-  //Serial.begin(9600);
-  // Initialize pin LED_BUILTIN as an output
-  pinMode(LED_BUILTIN, OUTPUT);
-  //defining Interrupt pin
-  pinMode(16, INPUT);
+
+  pinMode(LED_BUILTIN, OUTPUT);   // Initialize pin LED_BUILTIN as an output
+  pinMode(16, INPUT);   //defining Interrupt pin
+
   //attachInterrupt(digitalPinToInterrupt(16), alert, LOW);// Set interrupt pin for falling, calls to alert for switching to emergency State
   //attachInterrupt(digitalPinToInterrupt(18), test, RISING);
   // Initialize LoRa
@@ -206,9 +206,11 @@ void setup()
 
   envSensor.begin();
   debugLn("Sensor initialized");
-  cam->begin();
-  debugLn("cam obj created");
+  //cam->begin();
+  //debugLn("cam obj created");
+ 
   currState=observing;
+
 }
 
 
@@ -221,10 +223,10 @@ void loop()
     
     case observing:{ // u gathering and processing information with sleep pauses
       debugLn("observing...");
-
+      /*
       digitalWrite(LED_BUILTIN,LOW);
-      watchdogSleep(30,&sleepbit);
-      //delay(10000);
+      //watchdogSleep(30,&sleepbit);
+      delay(10000);
       digitalWrite(LED_BUILTIN,HIGH);
       debugLn("end of sleep");
       
@@ -237,25 +239,28 @@ void loop()
 
        cam->cameraOn(); // start up camera
        debugLn("cam on");
-       /*
+       
       const auto image = new image_manipulator{((double**)cam->read()), 54, 74};// casting uint8_t** from return of cam->read to double** 
       const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
 	    //auto rounded_prediction = int(round(prediction));
       debugLn(int(round(prediction))); //print out picture
-      /*
-      ADD HERE BATTERY
-      */
+      
+      //DD HERE BATTERY
+      
 
         //cam->read(); //taking a picture
       //evaluation the picture
       //Serial.println(img->predict(((double**)cam->read()),60,80));
+      */
       pictures_taken_till_last_send++;
+       
+       /*
        delay(100); //Camera start up time
        cam->cameraOff();
        //delay(10000);
 
        
-
+      
       debugLn("true or false");
       debugLn("sleepflag: ");
       debugLn(sleepbit);
@@ -273,7 +278,7 @@ void loop()
     
       
       //if batteryDisplayOk== true
-
+      */
       if(pictures_taken_till_last_send>=picturesTillSend){
         currState=sending;
         pictures_taken_till_last_send=0; //reset picture Counter
@@ -281,12 +286,9 @@ void loop()
       }
 
       delay(2000);
+      
       break; 
-      /*if(alertTrigger==true){
-        //currState = emergency;
-      }
-      debugLn(alertTrigger);
-      */
+   
     
     }
       
