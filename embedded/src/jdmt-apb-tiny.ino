@@ -32,13 +32,15 @@ States currState = observing;
 volatile bool sleepbit=false; //first loop without sleeping
 volatile bool testbit=false; //normal mode is no test
 
-int sleepcounter=0;
+
 int Sleepduration_s=30; // duration of watchdochg sleeptime in ms
+int sleepcounter=0;
 //int sleepfactor=1;// factor of how mani times the Sleepmodus should start before taking a new picture
 bool cameraModulattached;
 bool batteryDisplayOk;
-int pictures_taken_till_last_send=0;
 int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
+
+int pictures_taken_till_last_send=picturesTillSend;
 
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
@@ -86,9 +88,10 @@ unsigned char Hellomsg[11] = {"hello LoRa"};
   TinyLoRa lora = TinyLoRa(3, 8);
 #endif
 
-SI7021 envSensor;
-Camera *cam = new Camera(22,13,19,16);
-//const auto model = new logistic_regression(coef, 1, 74, exp(1), pow);
+SI7021 * envSensor;
+Camera * cam;
+logistic_regression * model;
+
 
 
 void mapToPayload(uint8_t i, float value) {
@@ -104,7 +107,7 @@ void mapToPayload(uint8_t i, float value) {
 
 void preparePayolad() {
   // note: this uses the sflt16 datum (https://github.com/mcci-catena/arduino-lmic#sflt16)
-  float temperature = envSensor.getCelsiusHundredths()/100;
+  float temperature = envSensor->getCelsiusHundredths()/100;
   debug("Tempercature: "); debug(temperature);
   debugLn(" *C");
   // adjust for the f2sflt16 range (-1 to 1)
@@ -112,7 +115,7 @@ void preparePayolad() {
   mapToPayload(0, temperature);
 
   // read the humidity from the DHT22
-  float rHumidity = envSensor.getHumidityPercent();
+  float rHumidity = envSensor->getHumidityPercent();
   debug("Humidity: "); debug(rHumidity);
   debugLn(" RH");
   rHumidity = rHumidity / 100;
@@ -151,7 +154,7 @@ bool analyseImage()
 	return rounded_prediction;
 }
 */
-/*
+
 void watchdogSleep(int time_s, volatile bool*sleepflag){
 
   double sleep_rep=time_s/30;
@@ -167,7 +170,7 @@ void watchdogSleep(int time_s, volatile bool*sleepflag){
   
   *sleepflag=true;// reset sleepbit
 }
-*/
+
 void setup()
 {
   delay(2000);
@@ -175,14 +178,11 @@ void setup()
   
    #ifdef DEBUG
     Serial.begin(9600);
-    while (! Serial){
-      digitalWrite(LED_BUILTIN,LOW);
-    } ;
-    digitalWrite(LED_BUILTIN,HIGH); 
+    while (! Serial);
  #endif
  
   debugLn("hello");
-
+  pinMode(11,OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);   // Initialize pin LED_BUILTIN as an output
   pinMode(16, INPUT);   //defining Interrupt pin
 
@@ -203,11 +203,15 @@ void setup()
   debugLn(" OK");
   
   //lora.sendData(Hellomsg, sizeof(Hellomsg), lora.frameCounter);
-
-  envSensor.begin();
+  envSensor= new SI7021();
+  envSensor->begin();
   debugLn("Sensor initialized");
-  //cam->begin();
-  //debugLn("cam obj created");
+
+  cam = new Camera(22,13,19,16);//22,13,19,16
+  cam->begin();
+  debugLn("cam initialized");
+
+  model = new logistic_regression(coef, 1, 74, exp(1), pow);
  
   currState=observing;
 
@@ -223,10 +227,18 @@ void loop()
     
     case observing:{ // u gathering and processing information with sleep pauses
       debugLn("observing...");
-      /*
+      
       digitalWrite(LED_BUILTIN,LOW);
-      //watchdogSleep(30,&sleepbit);
-      delay(10000);
+      #ifdef DEBUG
+        delay(5000);
+      #endif
+      #ifndef DEBUG
+        watchdogSleep(Sleepduration_s,&sleepbit);
+      #endif
+
+
+      
+      
       digitalWrite(LED_BUILTIN,HIGH);
       debugLn("end of sleep");
       
@@ -236,56 +248,62 @@ void loop()
         break;
       }
       
-
-       cam->cameraOn(); // start up camera
+        
+       //cam->cameraOn(); // start up camera
        debugLn("cam on");
+        delay(2000); //Camera start up time
+        #ifdef DEBUG
+        //uint8_t* bla =cam->read;
+        #endif
        
       const auto image = new image_manipulator{((double**)cam->read()), 54, 74};// casting uint8_t** from return of cam->read to double** 
       const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
 	    //auto rounded_prediction = int(round(prediction));
+      debugLn(prediction);
       debugLn(int(round(prediction))); //print out picture
+      delete image;
       
-      //DD HERE BATTERY
+      //DD HERE BATTERY batteryDisplayOk
       
 
-        //cam->read(); //taking a picture
+      
       //evaluation the picture
-      //Serial.println(img->predict(((double**)cam->read()),60,80));
-      */
+      
+      
       pictures_taken_till_last_send++;
        
-       /*
-       delay(100); //Camera start up time
-       cam->cameraOff();
+       
+       //cam->cameraOff();
+       debugLn("cam off");
        //delay(10000);
 
        
       
-      debugLn("true or false");
-      debugLn("sleepflag: ");
-      debugLn(sleepbit);
-      debugLn(cam->is_there_CameraModul());
+      //debugLn("true or false");
+      //debugLn("sleepflag: ");
+      //debugLn(sleepbit);
+      //debugLn(cam->is_there_CameraModul());
 
       //if batteryDisplayOk== false
-      
+      /*
       batteryDisplayOk=true;
       
       if(batteryDisplayOk==false||cam->is_there_CameraModul()==false){//either battary is bad or cameramodul is not attached switch to emergency state
         currState=emergency;
         break;
       }
-      
+      */
     
       
       //if batteryDisplayOk== true
-      */
+      
       if(pictures_taken_till_last_send>=picturesTillSend){
         currState=sending;
         pictures_taken_till_last_send=0; //reset picture Counter
         break;
       }
 
-      delay(2000);
+      
       
       break; 
    
@@ -293,6 +311,7 @@ void loop()
     }
       
     case sending:{ // periodical sending information over LoRa
+
       debugLn("sending...");
       delay(2000);
       digitalWrite(LED_BUILTIN, HIGH);

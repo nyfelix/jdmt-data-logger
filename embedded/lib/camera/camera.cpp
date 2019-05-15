@@ -1,30 +1,27 @@
 #include <Camera.h>
 
 
-Camera::Camera(int CompPIN1, int CompPIN2, int Camera_Modul_Power, int Camera_modul_attached ) {
+Camera::Camera(int CompPin1, int CompPin2, int CameraModulPower, int Cameramodulattached ) {
   //ToDo: Set Pins in constructor
 
 
-  CompPin1=CompPIN1;
-  CompPin2=CompPIN2;
-  CameraModulPower=Camera_Modul_Power;
-  CameraModulPower=Camera_modul_attached;
+  _CompPin1=CompPin1;
+  _CompPin2=CompPin2;
+  _CameraModulPower=CameraModulPower;
+  _Cameramodulattached=Cameramodulattached;
    // Analog Comp Output Pin
   pinMode(CompPin1,OUTPUT);//22
   pinMode(CompPin2,OUTPUT);//13
 
 
   //Digital Pin Output
-  pinMode(CameraModulPower,OUTPUT);// Enable CameraModul//19
+  pinMode(_CameraModulPower,OUTPUT);// Enable CameraModul//19
   
   //pinMode(16,INPUT); // if Low, there is no Cameramodul
-  digitalWrite(Cameramodulattached,LOW);// 16
+  digitalWrite(_Cameramodulattached,LOW);// 16
 }
 
 void Camera::begin() {
-  Serial.println("beginn camera");
- 
-
   // Config AC Clock
   // PM->APBCMASK.bit.AC = 1;    // this does not work, don't know why
   REG_PM_APBCMASK = 0x00073FFC; // Enable AC clock  pk, but should first read register, bitwise or, then write
@@ -65,7 +62,7 @@ void Camera::begin() {
   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
   ADC->INPUTCTRL.bit.MUXNEG = 0x19;  // I/O Gnd on negative input to ADC
   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
-  ADC->INPUTCTRL.bit.MUXPOS = 0x0;  // AIN0 - Pin on positive input to ADC
+  ADC->INPUTCTRL.bit.MUXPOS = 0x0;  // AIN0 - Pin on positive input to ADC<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
   ADC->INPUTCTRL.bit.GAIN = 0x0;    // Gain = 1
   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
@@ -83,9 +80,9 @@ void Camera::begin() {
   while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch
   AC->CTRLA.bit.ENABLE = 0x0;        // Disable comps
   while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch
-  AC->COMPCTRL[0].bit.OUT = 0x0;      // No Output to I/O (0), ASYNC to pin 21 (1)
+  AC->COMPCTRL[0].bit.OUT = 0x0;      // No Output to I/O (0), ASYNC to pin 21 (1)<<<<<<<<<<<<<<<<<<<
   while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch
-  AC->COMPCTRL[0].bit.MUXPOS = 0x0;    // Ain0 (A3) routed to pos Input
+  AC->COMPCTRL[0].bit.MUXPOS = 0x0;    // Ain0 (A3) routed to pos Input<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch
   AC->COMPCTRL[0].bit.MUXNEG = 0x5;    // Scaler routed to neg Input (0x5)
   while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch
@@ -122,18 +119,18 @@ void Camera::begin() {
 }
 
 void Camera::cameraOn(){
-  digitalWrite(EnablePowerCameraModule,HIGH);
-  digitalWrite(CameraModulPower, HIGH);
+  digitalWrite(_CameraModulPower,HIGH);
+
 
 }
 
 void Camera::cameraOff(){
-   digitalWrite(EnablePowerCameraModule,LOW);
-   digitalWrite(CameraModulPower, LOW);
+   digitalWrite(_CameraModulPower,LOW);
+   
 }
 
 bool Camera::is_there_CameraModul(){
-  if(digitalRead(Cameramodulattached)== LOW){
+  if(digitalRead(_Cameramodulattached)== LOW){
     //Serial.println("there is no CameraModul");
     return false;
   }

@@ -7,18 +7,18 @@ typedef uint8_t picture[60][80];
 class Camera
 {
   public:
-    Camera(int CompPin1, int CompPin2,int CameraModulPower,int Cameramodulattached);
+    Camera(int , int ,int ,int );
     void begin();
     picture* read(void);
     void cameraOn();
     void cameraOff();
     bool is_there_CameraModul();
     void AC_Handler();
-
+    
     
 
   protected:
-    int CompPin1, CompPin2, CameraModulPower, Cameramodulattached;
+    int _CompPin1, _CompPin2, _CameraModulPower, _Cameramodulattached;
     int readdata=0;
     int counter=0;
     double samples = 8;
@@ -46,7 +46,7 @@ class Camera
     volatile int row = 0;
     volatile int nopspershift = 2; // 2
     volatile int a;
-    bool EnablePowerCameraModule= 19; // Transistor for  CameraModulepower PIN
+    
 };
 
 #endif
