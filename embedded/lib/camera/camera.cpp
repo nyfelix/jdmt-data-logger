@@ -1,5 +1,22 @@
 #include <Camera.h>
 
+picture sample0001;
+
+volatile int triggered = 0;
+volatile int interm = 10; // number of intermediate samples between each 8 samples
+volatile int nops = 0;  // number of intermediate samples, init to 4 so at first run modulo 4+1 % 5 = 0
+volatile int skip = 0;
+volatile int row = 0;
+volatile int nopspershift = 2; // 2
+volatile int a;
+volatile int rows = 60;  // rows from above array
+volatile int columns = 80; // colums from above 
+int framestarttot = 0;
+byte framestart [8]= {0}; // the frametrigger value is stored here
+int frametreshold = 150; // 150
+int frame = 0;   // will be set to 1 if framstart detected
+int lines = 4;  // 4  each "lines" lines will be scanned
+double samples = 8;
 
 Camera::Camera(int CompPin1, int CompPin2, int CameraModulPower, int Cameramodulattached ) {
   //ToDo: Set Pins in constructor
@@ -191,7 +208,7 @@ uint8_t * Camera::read() {
 }
 
 */
-void Camera::AC_Handler() {
+void AC_Handler() {
   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt
   if (frame == 0) {
     for (int i = 0; i < 8; i++) {  // take 8 samples, equally spaced appr 5.67 us (as fast as it can go)

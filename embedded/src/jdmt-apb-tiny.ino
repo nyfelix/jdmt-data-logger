@@ -33,11 +33,10 @@ volatile bool sleepbit=false; //first loop without sleeping
 volatile bool testbit=false; //normal mode is no test
 
 
-int Sleepduration_s=30; // duration of watchdochg sleeptime in ms
+int Sleepduration_s=30; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
 int sleepcounter=0;
-//int sleepfactor=1;// factor of how mani times the Sleepmodus should start before taking a new picture
 bool cameraModulattached;
-bool batteryDisplayOk;
+bool batteryDisplayOk; // true if the display of the AEO shows, that the battery is ok
 int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
 
 int pictures_taken_till_last_send=picturesTillSend;
@@ -93,6 +92,24 @@ Camera * cam;
 logistic_regression * model;
 
 
+
+typedef double cut_picture[54][74];
+
+
+cut_picture * cut_picture_to_size(double** picture_to_cut, int row_start, int row_end,int column_start, int column_end){
+
+  cut_picture pic;
+  int i=0;
+  int t=0;
+  for (int v = row_start; v <(row_end); v++) {
+      for (int u = column_start; u < (column_end); u++) {
+        pic[i][t]=picture_to_cut[v][u];
+        u++;
+        }
+       t++;
+    }
+    return &pic;
+}
 
 void mapToPayload(uint8_t i, float value) {
   // float -> int
@@ -182,6 +199,8 @@ void setup()
  #endif
  
   debugLn("hello");
+
+ 
   pinMode(11,OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);   // Initialize pin LED_BUILTIN as an output
   pinMode(16, INPUT);   //defining Interrupt pin
@@ -208,8 +227,14 @@ void setup()
   debugLn("Sensor initialized");
 
   cam = new Camera(22,13,19,16);//22,13,19,16
+  debugLn("cam constructed");
+  cam->AC_Handler();
+  debugLn("cam ADC");
+
   cam->begin();
   debugLn("cam initialized");
+
+  
 
   model = new logistic_regression(coef, 1, 74, exp(1), pow);
  
@@ -236,9 +261,6 @@ void loop()
         watchdogSleep(Sleepduration_s,&sleepbit);
       #endif
 
-
-      
-      
       digitalWrite(LED_BUILTIN,HIGH);
       debugLn("end of sleep");
       
