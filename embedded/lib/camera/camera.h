@@ -13,7 +13,7 @@ class Camera
     void cameraOn();
     void cameraOff();
     bool is_there_CameraModul();
-    void AC_Handler();
+    
     
     
 

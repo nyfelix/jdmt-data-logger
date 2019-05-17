@@ -18,7 +18,7 @@
 #include <Adafruit_SleepyDog.h>
 #include <config.h>
 #include <avr/pgmspace.h>
-#include <Camera.h>
+//#include <Camera.h>
 #include <image_manipulator.h>
 #include <logistic_regression.h>
 
@@ -26,6 +26,11 @@
 
 
 #define  DEBUG
+
+typedef uint8_t picture[60][80];
+picture sample0001;
+typedef double cut_picture[54][74];
+cut_picture pic;
 
 enum States{observing, sending, testing, emergency};
 States currState = observing;
@@ -40,6 +45,37 @@ bool batteryDisplayOk; // true if the display of the AEO shows, that the battery
 int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
 
 int pictures_taken_till_last_send=picturesTillSend;
+
+
+/************** VARIABLE FOR CAMERAMODUL **********/
+int readdata=0;
+int counter=0;
+double samples = 8; 
+byte framestart [8]= {0}; // the frametrigger value is stored here  
+int framestarttot = 0; 
+int frametreshold = 150; // 150 
+// int rows = 60;  // rows from above array
+
+int done = 0;
+int sample0;
+int lines = 4;  // 4  each "lines" lines will be scanned 
+int startoffset = 0;  // 25 nops at start of each frame 
+int frame = 0;   // will be set to 1 if framstart detected 
+uint8_t reg8 = 0; 
+uint16_t reg16 = 0;
+uint32_t reg32 = 0; 
+uint8_t algopaso = 0;
+volatile int triggered = 0; 
+volatile int interm = 10; // number of intermediate samples between each 8 samples 
+volatile int nops = 0;  // number of intermediate samples, init to 4 so at first run modulo 4+1 % 5 = 0  
+volatile int skip = 0;  
+volatile int row = 0; 
+volatile int nopspershift = 2; // 2 
+volatile int a; 
+volatile int rows = 60;  // rows from above array
+volatile int columns = 80; // colums from above 
+
+bool Power_Camera_Module= 19; // Transistor for  CameraModulepower PIN
 
 // Visit your thethingsnetwork.org device console
 // to create an account, or if you need your session keys.
@@ -88,17 +124,233 @@ unsigned char Hellomsg[11] = {"hello LoRa"};
 #endif
 
 SI7021 * envSensor;
-Camera * cam;
+//Camera * cam;
 logistic_regression * model;
 
 
 
-typedef double cut_picture[54][74];
+
+void readPicture(){
+   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
+    for (int v = 4; v <(rows-2); v++) {
+      for (int u = 6; u < (columns); u++) {
+        Serial.print(sample0001[v][u]);
+        Serial.print("\t");
+        delay(1);        // delay in between reads for stability 
+        }
+        Serial.println();
+    }
+     Serial.println(); 
+    /*Disable Array print
+    Serial.print("const uint8_t sample0001_map[] = {"); 
+    for (int v = 4; v <(rows-2); v++) {
+      for (int u = 6; u < (columns); u++) {
+        Serial.print(sample0001[v][u]);
+        Serial.print(",");
+        delay(1);        // delay in between reads for stability 
+        }
+       }
+       Serial.print("}");  
+     Serial.println();
+     */
+      
+     AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
+}
+
+void CameraON(){
+  digitalWrite(Power_Camera_Module,HIGH);
+  digitalWrite(19, HIGH);
+
+}
+
+void CameraOFF(){
+   digitalWrite(Power_Camera_Module,LOW);
+   digitalWrite(19, LOW);
+}
+
+void checkCameraModul(){
+  if(digitalRead(16)== LOW){
+    Serial.println("there is no CameraModul");
+    return;
+  }
+  Serial.println("CameraModul OK");
+}
 
 
-cut_picture * cut_picture_to_size(double** picture_to_cut, int row_start, int row_end,int column_start, int column_end){
 
-  cut_picture pic;
+void AC_Handler() {
+  AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
+  if (frame == 0) {
+    for (int i = 0; i < 8; i++) {  // take 8 samples, equally spaced appr 5.67 us (as fast as it can go) 
+       while (!(ADC->INTFLAG.bit.RESRDY)); // Wait for next ADC result to be ready 
+        framestart [i] = ADC->RESULT.reg;    
+     } 
+     framestarttot = 0; 
+     for (int y = 0; y < 8; y++) {
+      framestarttot += framestart [y]; 
+     }
+     if (framestarttot < frametreshold) {
+      frame = 1; 
+     }
+   }
+   else {
+    if (skip == 0 ) {
+  //    for (int y = 0; y < 20; y++) {
+ //        __asm__("nop\n\t");  
+ //     }
+
+        sqrt (100);
+                       
+         switch(nops) {
+          case 0: 
+            break; //exit loop
+          case 1: 
+            __asm__("nop\n"); //waste one cycle
+            __asm__("nop\n");  
+            break; 
+
+          case 2: 
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");   
+            __asm__("nop\n");  
+            break; 
+
+          case 3: 
+            __asm__("nop\n");  
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");   
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+             break; 
+
+          case 4: 
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");   
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");  
+             break; 
+
+          case 5: 
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");   
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            break;            
+
+          case 6: 
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");   
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            break;
+
+          case 7: 
+            __asm__("nop\n");  
+            __asm__("nop\n");
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");   
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");  
+            __asm__("nop\n");    
+
+            break; 
+          case 8: 
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");  
+            __asm__("nop\n");
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");   
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");  
+            __asm__("nop\n");     
+ 
+            break;            
+          case 9: 
+            __asm__("nop\n");  
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");  
+            __asm__("nop\n");
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n");  
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");   
+            __asm__("nop\n"); 
+            __asm__("nop\n"); 
+            __asm__("nop\n");  
+            __asm__("nop\n");     
+
+            break; 
+         }
+         
+         
+         for (int i = 0; i < (samples); i++) {  // take 8 samples, equally spaced appr 5.67 us (as fast as it can go) 
+           while (!(ADC->INTFLAG.bit.RESRDY)); // Wait for next ADC result to be ready 
+           sample0001[row][(nops+(10*i))] = ADC->RESULT.reg;    
+         } 
+        skip += 1; 
+        row = (row + 1)%rows; //   roll over row counter  
+        if (row == 0) {   
+         nops = (nops + 1);         // nops counter   
+         frame = 0; 
+        }
+        if (nops == (interm)) {
+         triggered = 1;  
+         frame = 0; 
+         nops = 0; 
+        }
+    }
+    else {
+      skip = (skip + 1) % lines; // lines 
+    }
+   }
+   AC->INTFLAG.bit.COMP0=1;
+   AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
+}
+
+void cut_picture_to_size(picture picture_to_cut, int row_start, int row_end,int column_start, int column_end){
+
+  
   int i=0;
   int t=0;
   for (int v = row_start; v <(row_end); v++) {
@@ -108,7 +360,7 @@ cut_picture * cut_picture_to_size(double** picture_to_cut, int row_start, int ro
         }
        t++;
     }
-    return &pic;
+  
 }
 
 void mapToPayload(uint8_t i, float value) {
@@ -138,8 +390,10 @@ void preparePayolad() {
   rHumidity = rHumidity / 100;
 
   mapToPayload(2, rHumidity);
-
+  AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
   float vbat = analogRead(VBATPIN);
+  AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
+  
   vbat *= 2;    // we divided by 2, so multiply back
   vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
   vbat /= 1024; // convert to voltage
@@ -147,6 +401,7 @@ void preparePayolad() {
   debugLn(" V");
   vbat /= 10;
   mapToPayload(4, vbat);
+  
 }
 
 void alert(){
@@ -189,16 +444,105 @@ void watchdogSleep(int time_s, volatile bool*sleepflag){
 }
 
 void setup()
-{
-  delay(2000);
-  Serial.begin(9600);
-  
+{  
    #ifdef DEBUG
     Serial.begin(9600);
     while (! Serial);
  #endif
  
   debugLn("hello");
+  /*****************************SETUP FOR CAMERA SIGNAL********************************************************/
+         // Pins 
+  // Analog Comp Output Pin 
+ pinMode(22,OUTPUT); 
+ pinMode(13,OUTPUT);
+
+
+ //Digital Pin Output
+ 
+ 
+ pinMode(19,OUTPUT);// Enable CameraModul
+  pinMode(16,INPUT);// if Low, there is no Cameramodul
+ digitalWrite(Power_Camera_Module,LOW);// As deafault CameraModul is disabled
+
+  // Config AC Clock
+ // PM->APBCMASK.bit.AC = 1;    // this does not work, don't know why 
+    REG_PM_APBCMASK = 0x00073FFC; // Enable AC clock  pk, but should first read register, bitwise or, then write 
+  
+  GCLK->CLKCTRL.reg = 0x401F;         // 16 bit write for AC_DIG, enable Generator 0 
+  GCLK->CLKCTRL.reg = 0x4020;         // 16 bit write for AC_ANA, enable Generator 0   
+
+  // ADC setup   
+   ADC->CTRLB.bit.PRESCALER = 0x3;      // Prescaler = 32 (only works fine this way...) 
+   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
+   ADC->CTRLB.bit.RESSEL = 0x3;       // Resolution = 8 bit 
+   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
+   ADC->CTRLB.bit.FREERUN = 0x1;      // Set to free running mode 
+   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
+   ADC->CTRLB.bit.DIFFMODE = 0x0;     // set to single ended mode 
+   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
+   ADC->SAMPCTRL.bit.SAMPLEN = 0;     // Set sampling time to minimum 
+   ADC->CTRLB.bit.LEFTADJ = 0x0;      // Result Right Adjusted  
+   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
+   ADC->INPUTCTRL.bit.MUXNEG = 0x19;  // I/O Gnd on negative input to ADC    
+   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
+   ADC->INPUTCTRL.bit.MUXPOS = 0x0;  // AIN0 - Pin on positive input to ADC    
+   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
+   ADC->INPUTCTRL.bit.GAIN = 0x0;    // Gain = 1     
+   while (ADC->STATUS.bit.SYNCBUSY); // Wait for clock domain synch
+   ADC->REFCTRL.bit.REFSEL = 0x0;    // Internal Reference 1V 
+   // Enable ADC 
+   ADC->CTRLA.bit.ENABLE = 1; 
+
+ // Analog Comparator setup
+  // AC->EVCTRL.bit.COMPEO0 = 0x1;    // Event Control REgister Output enable Comp 0 
+  // COMPCTRL[0]  Register, not written bits are supposed to remain 0 (by default) 
+  AC->COMPCTRL[0].reg = 0x0;    // set all to 0      
+  // REG_AC_COMPCTRL0 = 0x0; 
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+  AC->COMPCTRL[0].bit.ENABLE = 0x0;    // Disable Comp 0     
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+  AC->CTRLA.bit.ENABLE = 0x0;        // Disable comps 
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch
+  AC->COMPCTRL[0].bit.OUT = 0x0;      // No Output to I/O (0), ASYNC to pin 21 (1)
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch
+  AC->COMPCTRL[0].bit.MUXPOS = 0x0;    // Ain0 (A3) routed to pos Input  
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+  AC->COMPCTRL[0].bit.MUXNEG = 0x5;    // Scaler routed to neg Input (0x5)
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+  AC->COMPCTRL[0].bit.HYST = 0x1;    // Hysteresis (dis)enabled  
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+  AC->COMPCTRL[0].bit.SPEED = 0x1;    // High speed   
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+  AC->COMPCTRL[0].bit.SINGLE = 0x0;    // Continuous mode    
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+  // SCALER[0] 
+  AC->SCALER[0].bit.VALUE = 1;    // Set AC neg input to ca 100mV (-> 1 = 103mV)     
+  // Interrupts 
+  AC->INTENSET.bit.COMP0 = 0x1;    // Set Enable Interrupt AC0   
+  AC->COMPCTRL[0].bit.INTSEL = 0x1;    // Interrupt on rising Edge (falling edge would be 0x2)     
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+   // Enable AC 
+  AC->COMPCTRL[0].bit.ENABLE = 0x1;    // Enable Comp 0     
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch 
+  AC->CTRLA.bit.ENABLE = 1;        // Enable comps 
+  while (AC->STATUSB.bit.SYNCBUSY); // Wait for clock domain synch
+      
+
+  // Clock setup 
+  // GENCTRL: 32 bit register, to be configured for 1 of 8  generic clock generators 
+  // CLKCTRL: 16 bit register to be written to for configuring the clck of the peripheral 
+
+
+  // Event Setup (not used) 
+
+  // NVIC(Nested Vectored Interrupt Controller) Interrupt controller, enable interruots from AC 
+    AC->INTENSET.bit.COMP0 = 0x1;
+    AC->INTFLAG.bit.COMP0=1;
+    NVIC_EnableIRQ(AC_IRQn);
+
+
+  /*************************************************************************************************************/
 
  
   pinMode(11,OUTPUT);
@@ -226,13 +570,10 @@ void setup()
   envSensor->begin();
   debugLn("Sensor initialized");
 
-  cam = new Camera(22,13,19,16);//22,13,19,16
-  debugLn("cam constructed");
-  cam->AC_Handler();
-  debugLn("cam ADC");
-
-  cam->begin();
-  debugLn("cam initialized");
+  //cam = new Camera(22,13,19,16);//22,13,19,16
+  
+  
+ 
 
   
 
@@ -243,9 +584,9 @@ void setup()
 }
 
 
-void bloop(){
 
-}
+
+
 void loop()
 {
   switch (currState) { //Statemachine
@@ -275,12 +616,15 @@ void loop()
        debugLn("cam on");
         delay(2000); //Camera start up time
         #ifdef DEBUG
-        //uint8_t* bla =cam->read;
+        readPicture();       
         #endif
-       
-      const auto image = new image_manipulator{((double**)cam->read()), 54, 74};// casting uint8_t** from return of cam->read to double** 
+        
+       //cut_picture_to_size(sample0001,4,2,6,0);
+      //image_manipulator()
+      cut_picture_to_size(sample0001,4,2,6,0);
+      const auto image = new image_manipulator{(double**)pic, 54, 74};// casting uint8_t** from return of cam->read to double** 
       const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
-	    //auto rounded_prediction = int(round(prediction));
+	    auto rounded_prediction = int(round(prediction));
       debugLn(prediction);
       debugLn(int(round(prediction))); //print out picture
       delete image;
@@ -324,7 +668,7 @@ void loop()
         pictures_taken_till_last_send=0; //reset picture Counter
         break;
       }
-
+      
       
       
       break; 
@@ -339,10 +683,10 @@ void loop()
       digitalWrite(LED_BUILTIN, HIGH);
       debugLn("Sending LoRa Data...");
       preparePayolad();
-      lora.sendData(payload, sizeof(payload), lora.frameCounter);
+      //lora.sendData(payload, sizeof(payload), lora.frameCounter);
       debug("Frame Counter: "); 
-      debugLn(lora.frameCounter);
-      lora.frameCounter++;
+      //debugLn(lora.frameCounter);
+      //lora.frameCounter++;
       delay(1000);
       digitalWrite(LED_BUILTIN, LOW);
       debugLn("delaying...");
