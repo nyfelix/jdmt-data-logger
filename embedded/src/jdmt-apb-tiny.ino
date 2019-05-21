@@ -29,7 +29,7 @@
 
 typedef uint8_t picture[60][80];
 picture sample0001;
-typedef double cut_picture[54][74];
+typedef uint8_t cut_picture[54][74];
 cut_picture pic;
 
 enum States{observing, sending, testing, emergency};
@@ -46,6 +46,7 @@ int picturesTillSend=2; // The camera just transmits the data with LoRa after "p
 
 int pictures_taken_till_last_send=picturesTillSend;
 
+int bla1=0; // Changing the Analog Converter mode AC_Handler()
 
 /************** VARIABLE FOR CAMERAMODUL **********/
 int readdata=0;
@@ -175,29 +176,27 @@ void checkCameraModul(){
   }
   Serial.println("CameraModul OK");
 }
-
-
-
-void AC_Handler() {
-  AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
-  if (frame == 0) {
-    for (int i = 0; i < 8; i++) {  // take 8 samples, equally spaced appr 5.67 us (as fast as it can go) 
+/*
+void AC_Handler(){
+  //if (bla1==1){
+    //***************************** CAMERA AC_Handler() ***************************************
+     AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
+    if (frame == 0) {
+      for (int i = 0; i < 8; i++) {  // take 8 samples, equally spaced appr 5.67 us (as fast as it can go) 
        while (!(ADC->INTFLAG.bit.RESRDY)); // Wait for next ADC result to be ready 
         framestart [i] = ADC->RESULT.reg;    
-     } 
+      } 
      framestarttot = 0; 
      for (int y = 0; y < 8; y++) {
       framestarttot += framestart [y]; 
      }
-     if (framestarttot < frametreshold) {
+      if (framestarttot < frametreshold) {
       frame = 1; 
      }
-   }
-   else {
-    if (skip == 0 ) {
-  //    for (int y = 0; y < 20; y++) {
- //        __asm__("nop\n\t");  
- //     }
+    }
+    else {
+      if (skip == 0 ) {
+ 
 
         sqrt (100);
                        
@@ -346,9 +345,200 @@ void AC_Handler() {
    }
    AC->INTFLAG.bit.COMP0=1;
    AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
+  }
+  
+  if(bla1==0){
+    //**************default AC_Handler() ******************************************
+    if (AC->INTFLAG.reg & AC_INTFLAG_COMP0){
+		//spi_potenciometro_write(pot_count--);
+		AC->INTFLAG.reg = AC_INTFLAG_COMP0;
+	  }
+	  if (AC->INTFLAG.reg & AC_INTFLAG_COMP1){
+		//spi_potenciometro_write(pot_count++);
+		AC->INTFLAG.reg = AC_INTFLAG_COMP1;
+	  }
+   
+  }
+  
 }
+*/
+/*
+void AC_Handler() {
+  AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt
+  if (frame == 0) {
+    for (int i = 0; i < 8; i++) {  // take 8 samples, equally spaced appr 5.67 us (as fast as it can go)
+       while (!(ADC->INTFLAG.bit.RESRDY)); // Wait for next ADC result to be ready
+        framestart [i] = ADC->RESULT.reg;
+     }
+     framestarttot = 0;
+     for (int y = 0; y < 8; y++) {
+      framestarttot += framestart [y];
+     }
+     if (framestarttot < frametreshold) {
+      frame = 1;
+     }
+   }
+   else {
+    if (skip == 0 ) {
+  //    for (int y = 0; y < 20; y++) {
+ //        __asm__("nop\n\t");
+ //     }
 
-void cut_picture_to_size(picture picture_to_cut, int row_start, int row_end,int column_start, int column_end){
+        sqrt (100);
+
+         switch(nops) {
+          case 0:
+            break; //exit loop
+          case 1:
+            __asm__("nop\n"); //waste one cycle
+            __asm__("nop\n");
+            break;
+
+          case 2:
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            break;
+
+          case 3:
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+             break;
+
+          case 4:
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+             break;
+
+          case 5:
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            break;
+
+          case 6:
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            break;
+
+          case 7:
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+
+            break;
+          case 8:
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+
+            break;
+          case 9:
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+            __asm__("nop\n");
+
+            break;
+         }
+
+
+         for (int i = 0; i < (samples); i++) {  // take 8 samples, equally spaced appr 5.67 us (as fast as it can go)
+           while (!(ADC->INTFLAG.bit.RESRDY)); // Wait for next ADC result to be ready
+           sample0001[row][(nops+(10*i))] = ADC->RESULT.reg;
+         }
+        skip += 1;
+        row = (row + 1)%rows; //   roll over row counter
+        if (row == 0) {
+         nops = (nops + 1);         // nops counter
+         frame = 0;
+        }
+        if (nops == (interm)) {
+         triggered = 1;
+         frame = 0;
+         nops = 0;
+        }
+    }
+    else {
+      skip = (skip + 1) % lines; // lines
+    }
+   }
+   AC->INTFLAG.bit.COMP0=1;
+   AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt
+}*/
+
+
+
+
+
+
+void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int column_start, int column_end){
 
   
   int i=0;
@@ -362,6 +552,7 @@ void cut_picture_to_size(picture picture_to_cut, int row_start, int row_end,int 
     }
   
 }
+
 
 void mapToPayload(uint8_t i, float value) {
   // float -> int
@@ -391,7 +582,7 @@ void preparePayolad() {
 
   mapToPayload(2, rHumidity);
   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
-  float vbat = analogRead(VBATPIN);
+  float vbat =555;// analogRead(VBATPIN);
   AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
   
   vbat *= 2;    // we divided by 2, so multiply back
@@ -413,19 +604,6 @@ void test(){
   testbit=true;
 }
 
-/*
-bool analyseImage()
-{
-	
-
-	
-	const auto image = new image_manipulator{index, 54, 74};
-	const auto prediction = model->predict(image->compress());
-	auto rounded_prediction = int(round(prediction));
-
-	return rounded_prediction;
-}
-*/
 
 void watchdogSleep(int time_s, volatile bool*sleepflag){
 
@@ -583,10 +761,6 @@ void setup()
 
 }
 
-
-
-
-
 void loop()
 {
   switch (currState) { //Statemachine
@@ -611,6 +785,7 @@ void loop()
         break;
       }
       
+      bla1=1; // Changing to Cam mode
         
        //cam->cameraOn(); // start up camera
        debugLn("cam on");
@@ -631,7 +806,7 @@ void loop()
       
       //DD HERE BATTERY batteryDisplayOk
       
-
+      //bla1=0; // Changing to default mode
       
       //evaluation the picture
       
