@@ -27,9 +27,19 @@
 
 
 #define  DEBUG
+//********************************** PIN
+int PIN_ground_MOSFET= 11; // Transistor for camera modul Power mangement
+int PIN_source_MOSFET=9;// Transistor for camera modul Power mangement
+int PIN_short_circuit_MOSFET=10;// Transistor for camera modul Power mangement
+int PIN_Camera_attached_check=16; //
+//***********************
 
-typedef uint8_t picture[60][80];
-picture sample0001;
+//****************** SETTINGS **********************************************
+int Sleepduration_s=30; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
+int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
+
+//***********************************************************************
+
 typedef uint8_t cut_picture[54][74];
 cut_picture pic;
 
@@ -39,17 +49,19 @@ volatile bool sleepbit=false; //first loop without sleeping
 volatile bool testbit=false; //normal mode is no test
 
 
-int Sleepduration_s=30; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
 int sleepcounter=0;
 bool cameraModulattached;
 bool batteryDisplayOk; // true if the display of the AEO shows, that the battery is ok
-int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
 int pictures_taken_till_last_send=picturesTillSend;
 uint8_t coincidence_probability=0;
 volatile int SetupHandler=0;
 //int AC_Handler_Mode=0; // Changing the Analog Converter mode AC_Handler()
 
-/************** VARIABLE FOR CAMERAMODUL **********/
+/************** VARIABLES FOR CAMERAMODUL **********/
+
+typedef uint8_t picture[60][80];
+picture sample0001;
+
 int readdata=0;
 int counter=0;
 double samples = 8; 
@@ -76,13 +88,10 @@ volatile int nopspershift = 2; // 2
 volatile int a; 
 volatile int rows = 60;  // rows from above array
 volatile int columns = 80; // colums from above 
+//************************************************************************************
 
-bool Power_Camera_Module= 19; // Transistor for  CameraModulepower PIN
 
-
-// Visit your thethingsnetwork.org device console
-// to create an account, or if you need your session keys.
-
+// **************************Coefizient for logistic_regression***************************
 double coef[] = {0.96162954, 1.5798257, 1.15578957, 0.87683753, -2.0659162, -1.79649967,
 				 -1.99569325, -2.12694536, -2.03716275, -1.84588508, -2.18402691, -1.55599748,
 				 -1.26471973, -1.42254674, 1.10134503, 0.98292626, 1.24841439, 0.94516222,
@@ -97,8 +106,9 @@ double coef[] = {0.96162954, 1.5798257, 1.15578957, 0.87683753, -2.0659162, -1.7
 				 0.5226508, 0.41862142, 0.44527862, 0.46403118, 0.34592521, 0.61041455,
 				 0.90292049, 0.59783172};
 
+//*************************************************************************
 
-
+//******************Configuration of TinyLoRa********************
 // Network Session Key (MSB)
 uint8_t NwkSkey[16] = NWKSKEY;
 
@@ -108,16 +118,6 @@ uint8_t AppSkey[16] = APPSKEY;
 // Device Address (MSB)
 uint8_t DevAddr[4] = DEVADDR;
 
-
-/************************** Example Begins Here ***********************************/
-// Data Packet to Send to TTN
-
-unsigned char payload[7];
-
-unsigned char Hellomsg[11] = {"hello LoRa"};
-
-
-
 #ifdef FEATHER32U4
   // Pinout for Adafruit Feather 32u4 LoRa
   TinyLoRa lora = TinyLoRa(7, 8);
@@ -125,16 +125,26 @@ unsigned char Hellomsg[11] = {"hello LoRa"};
   // Pinout for Adafruit Feather M0 LoRa
   TinyLoRa lora = TinyLoRa(3, 8);
 #endif
+//*********************************************************************
+
+//************************** Variable for preparePayolad ***********************************
+// Data Packet to Send to TTN
+
+unsigned char payload[7];
+
+unsigned char Hellomsg[11] = {"hello LoRa"};
+//****************************************
+
+//********************************** Constructor for Object ***********************
 
 SI7021 * envSensor;
-//Camera * cam;
 logistic_regression * model;
 CayenneLPP lpp(51);
+//******************************************************************************3
 
 
 
-
-void readPicture(){
+void printPicture(){
    AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
     for (int v = 4; v <(rows-2); v++) {
       for (int u = 6; u < (columns); u++) {
@@ -162,14 +172,18 @@ void readPicture(){
 }
 
 void CameraON(){
-  digitalWrite(Power_Camera_Module,HIGH);
-  digitalWrite(19, HIGH);
+  digitalWrite(PIN_short_circuit_MOSFET,LOW);
+  delay(1); // wait so the short circuit Mosfet can close (276ns) so ther is no actual short-circuit
+  digitalWrite(PIN_ground_MOSFET, HIGH);
+  digitalWrite(PIN_source_MOSFET, HIGH);
 
 }
 
 void CameraOFF(){
-   digitalWrite(Power_Camera_Module,LOW);
-   digitalWrite(19, LOW);
+  digitalWrite(PIN_ground_MOSFET, LOW);
+  digitalWrite(PIN_source_MOSFET, LOW);
+  delay(1); // wait so the source circuit Mosfet can copen (10ns) so ther is no actual short-circuit
+  digitalWrite(PIN_short_circuit_MOSFET,HIGH);
 }
 
 uint8_t is_there_CameraModul(){
@@ -394,14 +408,17 @@ void preapareCayennePayload(int nmbrOfPicturesTillSend){
   //lpp.reset(); After sending
   lpp.addDigitalInput(1+(nmbrOfPicturesTillSend-1)*5,coincidence_probability);
   lpp.addDigitalInput(2+(nmbrOfPicturesTillSend-1)*5,is_there_CameraModul());
-  float vbat= 555;//analogRead(VBATPIN)
+  float vbat= analogRead(VBATPIN);
   vbat *= 2;    // we divided by 2, so multiply back
   vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
   vbat /= 1024; // convert to voltage
+  debug("Battery: "); debug(vbat);
+  debugLn(" V");
   lpp.addAnalogInput(3+(nmbrOfPicturesTillSend-1)*5,vbat);
   lpp.addTemperature(4+(nmbrOfPicturesTillSend-1)*5, envSensor->getCelsiusHundredths()/100);
   lpp.addBarometricPressure(5+(nmbrOfPicturesTillSend-1)*5,envSensor->getHumidityPercent());
-  
+  debug("the size of the payload is: ");
+  debugLn(lpp.getSize());
 }
 
 
@@ -553,6 +570,9 @@ void Camera_setup(){
 
 
 
+
+
+
 void setup(){  
    #ifdef DEBUG
     Serial.begin(9600);
@@ -565,13 +585,15 @@ void setup(){
   // Analog Comp Output Pin 
  pinMode(22,OUTPUT); 
  pinMode(13,OUTPUT);
-
-
+//*****************************************************
+//REWORK
  //Digital Pin Output
- pinMode(19,OUTPUT);// Enable CameraModul
-  pinMode(16,INPUT);// if Low, there is no Cameramodul
- digitalWrite(Power_Camera_Module,LOW);// As deafault CameraModul is disabled
-
+pinMode(PIN_ground_MOSFET,OUTPUT);// initializing pins for camera power control
+pinMode(PIN_source_MOSFET,OUTPUT);// initializing pins for camera power control
+pinMode(PIN_short_circuit_MOSFET,OUTPUT);// initializing pins for camera power control
+pinMode(PIN_Camera_attached_check,INPUT);// if Low, there is no Cameramodul
+CameraOFF();
+//REORK
   
  
   pinMode(11,OUTPUT);
@@ -581,7 +603,7 @@ void setup(){
   //attachInterrupt(digitalPinToInterrupt(16), alert, LOW);// Set interrupt pin for falling, calls to alert for switching to emergency State
   //attachInterrupt(digitalPinToInterrupt(18), test, RISING);
 
-  Camera_setup();
+  
   // Initialize LoRa
   debug("Starting LoRa...");
   // define multi-channel sending
@@ -600,13 +622,6 @@ void setup(){
   envSensor= new SI7021();
   envSensor->begin();
   debugLn("Sensor initialized");
-
-  //cam = new Camera(22,13,19,16);//22,13,19,16
-  
-  
- 
-
-  
 
   model = new logistic_regression(coef, 1, 74, exp(1), pow);
  
@@ -637,23 +652,23 @@ void loop()
         testbit=false;
         break;
       }
-      AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
+      Camera_setup();
+      //AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
       debugLn("Changing setup Handler");
       SetupHandler=1; // Changing to Cam mode
-      AC->INTFLAG.bit.COMP0=1;
-      AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
-      SetupHandler=1; // Changing to Cam mode
-      memset(sample0001,0,sizeof(sample0001));
+      //AC->INTFLAG.bit.COMP0=1;
+      //AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
+      
+      memset(sample0001,0,sizeof(sample0001));// fill the array with 0 so in case the camera is broken
         
        //cam->cameraOn(); // start up camera
        debugLn("cam on");
         delay(2000); //Camera start up time
         #ifdef DEBUG
-        readPicture();       
+        printPicture();       
         #endif
         
-       //cut_picture_to_size(sample0001,4,2,6,0);
-      //image_manipulator()
+    
       cut_picture_to_size(sample0001,4,2,6,0);
       const auto image = new image_manipulator{(double**)pic, 54, 74};// casting uint8_t** from return of cam->read to double** 
       const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
@@ -663,10 +678,12 @@ void loop()
       delete image;
       
       //DD HERE BATTERY batteryDisplayOk
-      AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
-
-      //SetupHandler=0; // Changing to default mode
-      AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
+      //AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
+     // AC->COMPCTRL[0].reg = 0x0; // set all to 0
+      //AC->CTRLA[0] = 0x00;
+      
+      SetupHandler=0; // Changing to default mode
+      //AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
 
       //evaluation the picture
       
