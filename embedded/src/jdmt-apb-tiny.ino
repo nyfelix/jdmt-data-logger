@@ -403,10 +403,7 @@ void preapareCayennePayload(int nmbrOfPicturesTillSend){
   lpp.addBarometricPressure(5+(nmbrOfPicturesTillSend-1)*5,envSensor->getHumidityPercent());
   
 }
-void sendCayennePayload(){
-    
-    lpp.reset()
-}
+
 
 void mapToPayload(uint8_t i, float value) {
   // float -> int
@@ -674,14 +671,14 @@ void loop()
       //evaluation the picture
       
       
-      pictures_taken_till_last_send++;
-       
+      
+       pictures_taken_till_last_send++;
        
        //cam->cameraOff();
        debugLn("cam off");
        //delay(10000);
-
-       
+      preapareCayennePayload(pictures_taken_till_last_send);
+      
       
       //debugLn("true or false");
       //debugLn("sleepflag: ");
