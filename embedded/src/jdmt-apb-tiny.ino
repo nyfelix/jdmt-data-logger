@@ -26,27 +26,32 @@
 #include <math.h> // for pow
 
 
-#define  DEBUG
+//#define  DEBUG
 //********************************** PIN
-int PIN_ground_MOSFET= 11; // Transistor for camera modul Power mangement
-int PIN_source_MOSFET=9;// Transistor for camera modul Power mangement
-int PIN_short_circuit_MOSFET=10;// Transistor for camera modul Power mangement
-int PIN_Camera_attached_check=16; //
+//int PIN_ground_MOSFET_camera_power_control= 11; // Transistor for camera modul Power mangement
+int PIN_source_MOSFET_camera_power_control=10;// Transistor for camera modul Power mangement
+//int PIN_short_circuit_MOSFET_camera_power_control=10;// Transistor for camera modul Power mangement
+int PIN_Camera_attached_check=19; //
+int PIN_test_button=18;// 
+//PINs reserved 
+int PIN_analog_comp_1=22; // for camera modul
+int PIN_analog_comp_2=13; // for camera modul
+// A7/11 is reserved for battery
 //***********************
 
 //****************** SETTINGS **********************************************
 int Sleepduration_s=30; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
 int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
-
-//***********************************************************************
+int camera_start_up_time=3000;//time to give the camera to start up
+//******************************** Variables for statemachine and Camera
 
 typedef uint8_t cut_picture[54][74];
 cut_picture pic;
 
+//defining statemachine states
 enum States{observing, sending, testing, emergency};
 States currState = observing;
-volatile bool sleepbit=false; //first loop without sleeping
-volatile bool testbit=false; //normal mode is no test
+
 
 
 int sleepcounter=0;
@@ -54,7 +59,9 @@ bool cameraModulattached;
 bool batteryDisplayOk; // true if the display of the AEO shows, that the battery is ok
 int pictures_taken_till_last_send=picturesTillSend;
 uint8_t coincidence_probability=0;
-volatile int SetupHandler=0;
+volatile int ACSetupHandler=0;
+volatile bool sleepbit=false; //first loop without sleeping
+volatile bool testbit=false; //normal mode is no test
 //int AC_Handler_Mode=0; // Changing the Analog Converter mode AC_Handler()
 
 /************** VARIABLES FOR CAMERAMODUL **********/
@@ -169,33 +176,26 @@ void printPicture(){
      */
       
      AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
+     debugLn("end printing");
 }
 
 void CameraON(){
-  digitalWrite(PIN_short_circuit_MOSFET,LOW);
-  delay(1); // wait so the short circuit Mosfet can close (276ns) so ther is no actual short-circuit
-  digitalWrite(PIN_ground_MOSFET, HIGH);
-  digitalWrite(PIN_source_MOSFET, HIGH);
-
+  digitalWrite(PIN_source_MOSFET_camera_power_control, LOW);
+  delay(camera_start_up_time);
 }
 
 void CameraOFF(){
-  digitalWrite(PIN_ground_MOSFET, LOW);
-  digitalWrite(PIN_source_MOSFET, LOW);
-  delay(1); // wait so the source circuit Mosfet can copen (10ns) so ther is no actual short-circuit
-  digitalWrite(PIN_short_circuit_MOSFET,HIGH);
+ 
+  digitalWrite(PIN_source_MOSFET_camera_power_control, HIGH);
+  
 }
 
 uint8_t is_there_CameraModul(){
-  if(digitalRead(16)== LOW){
-    debugLn("there is no CameraModul");
+  if(digitalRead(PIN_Camera_attached_check)== LOW){
     return 0;
   }
-  debugLn("CameraModul OK");
   return 1;
 }
-
-
 
 
 void AC_Handler_Camera() {
@@ -370,11 +370,12 @@ void AC_Handler_Camera() {
 }
 
 void AC_Handler(){
-  if (SetupHandler==1){
+  if (ACSetupHandler==1){
     AC_Handler_Camera();
   }
-  if(SetupHandler==0){
+  if(ACSetupHandler==0){
     //**************default AC_Handler() ******************************************
+    
     if (AC->INTFLAG.reg & AC_INTFLAG_COMP0){
 		//spi_potenciometro_write(pot_count--);
 		AC->INTFLAG.reg = AC_INTFLAG_COMP0;
@@ -382,6 +383,7 @@ void AC_Handler(){
 	  if (AC->INTFLAG.reg & AC_INTFLAG_COMP1){
 		//spi_potenciometro_write(pot_count++);
 		AC->INTFLAG.reg = AC_INTFLAG_COMP1;
+    
 	  }
    
   }
@@ -389,16 +391,20 @@ void AC_Handler(){
 }
 
 void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int column_start, int column_end){
-
+  debugLn("cutting picture");
   
   int i=0;
   int t=0;
   for (int v = row_start; v <(row_end); v++) {
       for (int u = column_start; u < (column_end); u++) {
         pic[i][t]=picture_to_cut[v][u];
+        //debug(pic[i][t]);
+       // debug("\t");
+        delay(1);
         u++;
-        }
-       t++;
+      }
+     // debugLn();
+      t++;
     }
   
 }
@@ -408,7 +414,7 @@ void preapareCayennePayload(int nmbrOfPicturesTillSend){
   //lpp.reset(); After sending
   lpp.addDigitalInput(1+(nmbrOfPicturesTillSend-1)*5,coincidence_probability);
   lpp.addDigitalInput(2+(nmbrOfPicturesTillSend-1)*5,is_there_CameraModul());
-  float vbat= analogRead(VBATPIN);
+  float vbat= 555;//analogRead(VBATPIN);
   vbat *= 2;    // we divided by 2, so multiply back
   vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
   vbat /= 1024; // convert to voltage
@@ -416,7 +422,7 @@ void preapareCayennePayload(int nmbrOfPicturesTillSend){
   debugLn(" V");
   lpp.addAnalogInput(3+(nmbrOfPicturesTillSend-1)*5,vbat);
   lpp.addTemperature(4+(nmbrOfPicturesTillSend-1)*5, envSensor->getCelsiusHundredths()/100);
-  lpp.addBarometricPressure(5+(nmbrOfPicturesTillSend-1)*5,envSensor->getHumidityPercent());
+  lpp.addRelativeHumidity(5+(nmbrOfPicturesTillSend-1)*5,envSensor->getHumidityPercent());
   debug("the size of the payload is: ");
   debugLn(lpp.getSize());
 }
@@ -574,36 +580,30 @@ void Camera_setup(){
 
 
 void setup(){  
-   #ifdef DEBUG
-    Serial.begin(9600);
-    while (! Serial);
- #endif
+  
  
   debugLn("hello");
   /*****************************SETUP FOR CAMERA SIGNAL********************************************************/
-         // Pins 
+   
   // Analog Comp Output Pin 
- pinMode(22,OUTPUT); 
- pinMode(13,OUTPUT);
-//*****************************************************
-//REWORK
- //Digital Pin Output
-pinMode(PIN_ground_MOSFET,OUTPUT);// initializing pins for camera power control
-pinMode(PIN_source_MOSFET,OUTPUT);// initializing pins for camera power control
-pinMode(PIN_short_circuit_MOSFET,OUTPUT);// initializing pins for camera power control
-pinMode(PIN_Camera_attached_check,INPUT);// if Low, there is no Cameramodul
-CameraOFF();
-//REORK
-  
- 
-  pinMode(11,OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);   // Initialize pin LED_BUILTIN as an output
-  pinMode(16, INPUT);   //defining Interrupt pin
-  
-  //attachInterrupt(digitalPinToInterrupt(16), alert, LOW);// Set interrupt pin for falling, calls to alert for switching to emergency State
-  //attachInterrupt(digitalPinToInterrupt(18), test, RISING);
+  pinMode(PIN_analog_comp_1,OUTPUT); 
+  pinMode(PIN_analog_comp_2,OUTPUT);
+  //********************** Digital Pin Output
 
+ 
+  pinMode(PIN_source_MOSFET_camera_power_control,OUTPUT);// initializing pins for camera power control
+  pinMode(LED_BUILTIN, OUTPUT);   // Initialize pin LED_BUILTIN as an output
   
+  pinMode(PIN_test_button, INPUT);   //defining Interrupt pin
+  pinMode(PIN_Camera_attached_check,INPUT);// 
+  attachInterrupt(digitalPinToInterrupt(PIN_Camera_attached_check), alert, FALLING);// Set interrupt pin for falling, calls to alert for switching to emergency State
+  attachInterrupt(digitalPinToInterrupt(PIN_test_button), test, HIGH);
+  #ifdef DEBUG
+    Serial.begin(9600);
+    while (! Serial);
+  #endif
+
+  CameraOFF();// make sure the Camera is off
   // Initialize LoRa
   debug("Starting LoRa...");
   // define multi-channel sending
@@ -614,7 +614,12 @@ CameraOFF();
   if(!lora.begin())
   {
     debugLn("Failed: Check your radio");
-    while(true);
+    while(true){
+      digitalWrite(LED_BUILTIN,HIGH);
+      delay(500);
+      digitalWrite(LED_BUILTIN,LOW);
+      delay(500);
+    }
   }
   debugLn(" OK");
   
@@ -652,46 +657,63 @@ void loop()
         testbit=false;
         break;
       }
-      Camera_setup();
+      Camera_setup();  
       //AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
       debugLn("Changing setup Handler");
-      SetupHandler=1; // Changing to Cam mode
+      ACSetupHandler=1; // Changing to Cam mode
       //AC->INTFLAG.bit.COMP0=1;
       //AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
       
       memset(sample0001,0,sizeof(sample0001));// fill the array with 0 so in case the camera is broken
-        
-       //cam->cameraOn(); // start up camera
-       debugLn("cam on");
-        delay(2000); //Camera start up time
-        #ifdef DEBUG
-        printPicture();       
-        #endif
-        
-    
-      cut_picture_to_size(sample0001,4,2,6,0);
-      const auto image = new image_manipulator{(double**)pic, 54, 74};// casting uint8_t** from return of cam->read to double** 
-      const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
-	    auto rounded_prediction = int(round(prediction));
-      debugLn(prediction);
-      debugLn(int(round(prediction))); //print out picture
-      delete image;
       
+      CameraON(); // start up camera
+      debugLn("cam on");
+      
+      
+      #ifdef DEBUG
+      printPicture();
+             
+      #endif
+      
+      ACSetupHandler=0; // Changing to default mode  
+      //AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt
+      cut_picture_to_size(sample0001,6,60,4,78);
+      debugLn("1");
+      const auto image = new image_manipulator{(double**)pic, 54, 74};// casting uint8_t** from return of cam->read to double** 
+      debugLn("2");
+      //const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
+      debugLn("3");
+	    //auto rounded_prediction = int(round(prediction));
+      debugLn("prediction");
+      //debugLn(int(round(prediction))); //print out picture
+      delete image;
+      //AC->INTFLAG.bit.COMP0=1;
+      //AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt
+      
+      
+
       //DD HERE BATTERY batteryDisplayOk
       //AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
      // AC->COMPCTRL[0].reg = 0x0; // set all to 0
-      //AC->CTRLA[0] = 0x00;
+      //AC->CTRLA.bit.SWRST = 0x00;
+      //AC->SCALER[0].bit.VALUE = 0;
+      //AC->COMPCTRL[0].bit.ENABLE = 0x1; 
+      //analogReference(AR_DEFAULT);
       
-      SetupHandler=0; // Changing to default mode
       //AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
-
+      //debug("register: ");
+      //pinMode(VBATPIN,INPUT);
+      //debugLn(AC->INTFLAG.reg);
+      
+      //int bla= digitalRead(VBATPIN);
+      //debugLn(bla);
       //evaluation the picture
       
       
       
        pictures_taken_till_last_send++;
+       CameraOFF()
        
-       //cam->cameraOff();
        debugLn("cam off");
        //delay(10000);
       preapareCayennePayload(pictures_taken_till_last_send);
@@ -711,6 +733,11 @@ void loop()
         break;
       }
       */
+     if(is_there_CameraModul()==0){
+        debugLn("there is no camera");
+        currState=emergency;
+        break;
+     }
     
       
       //if batteryDisplayOk== true
@@ -760,6 +787,10 @@ void loop()
     case testing:{ 
       debugLn("testing...");
       delay(2000);
+      CameraON();
+      delay(2000);
+      CameraOFF();
+
       currState=observing;
       break;
     }
