@@ -28,9 +28,7 @@
 
 //#define  DEBUG
 //********************************** PIN
-//int PIN_ground_MOSFET_camera_power_control= 11; // Transistor for camera modul Power mangement
 int PIN_source_MOSFET_camera_power_control=10;// Transistor for camera modul Power mangement
-//int PIN_short_circuit_MOSFET_camera_power_control=10;// Transistor for camera modul Power mangement
 int PIN_Camera_attached_check=19; //
 int PIN_test_button=18;// 
 //PINs reserved 
@@ -42,11 +40,12 @@ int PIN_analog_comp_2=13; // for camera modul
 //****************** SETTINGS **********************************************
 int Sleepduration_s=30; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
 int picturesTillSend=2; // The camera just transmits the data with LoRa after "pictureTillSend" picutres were taken
-int camera_start_up_time=3000;//time to give the camera to start up
+int camera_start_up_time=1000;//time to give the camera to start up
 //******************************** Variables for statemachine and Camera
 
 typedef uint8_t cut_picture[54][74];
 cut_picture pic;
+
 
 //defining statemachine states
 enum States{observing, sending, testing, emergency};
@@ -414,7 +413,7 @@ void preapareCayennePayload(int nmbrOfPicturesTillSend){
   //lpp.reset(); After sending
   lpp.addDigitalInput(1+(nmbrOfPicturesTillSend-1)*5,coincidence_probability);
   lpp.addDigitalInput(2+(nmbrOfPicturesTillSend-1)*5,is_there_CameraModul());
-  float vbat= 555;//analogRead(VBATPIN);
+  float vbat= analogRead(VBATPIN);
   vbat *= 2;    // we divided by 2, so multiply back
   vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
   vbat /= 1024; // convert to voltage
@@ -455,7 +454,7 @@ void preparePayolad() {
   rHumidity = rHumidity / 100;
 
   mapToPayload(2, rHumidity);
-  float vbat =555;// analogRead(VBATPIN);
+  float vbat = analogRead(VBATPIN);
   
   vbat *= 2;    // we divided by 2, so multiply back
   vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
@@ -492,7 +491,28 @@ void watchdogSleep(int time_s, volatile bool*sleepflag){
   
   *sleepflag=true;// reset sleepbit
 }
+void AnalogRead_setup(){
+  //Initialize
 
+  //reset
+  AC->CTRLA.bit.ENABLE = 0; //disable comp 
+  AC->COMPCTRL[0].bit.ENABLE = 0x00;    // Disable comp
+  ADC->CTRLA.bit.SWRST = 0x00; //reset ADC
+  ADC->CTRLB.bit.RESSEL = 0x3; // Resolution of ADC to 
+  ADC->CTRLB.bit.RESSEL = 0x2;       // Resolution = 10 bit 
+  AC->COMPCTRL[0].bit.SINGLE = 0x0;    // Setting continous mode
+  ADC->SAMPCTRL.bit.SAMPLEN = 0xA; //Set 1024 Samples
+  ADC->REFCTRL.bit.REFSEL = 0x2;    // Internal Reference 1/2*3.3
+  ADC->INPUTCTRL.bit.GAIN = 0xF;    // set gain to 1/2
+  AC->COMPCTRL[0].bit.SINGLE= 0x00; //continous mode
+  ADC->INPUTCTRL.bit.MUXNEG = 0x19;// ground on negativ side of comp
+  ADC->INPUTCTRL.bit.MUXPOS = 0x07;  // AIN7 - Pin on positive input to ADC
+  AC->COMPCTRL[0].bit.MUXNEG = 0x19;    // Scaler routed to neg Input ground
+  AC->COMPCTRL[0].bit.MUXPOS = 0x07;    // Scaler routed to pos input AIN7
+
+  AC->CTRLA.bit.ENABLE = 1; //enable comp 
+  AC->COMPCTRL[0].bit.ENABLE = 0x1;    // Enable Comp   
+}
 void Camera_setup(){
   // Config AC Clock
  // PM->APBCMASK.bit.AC = 1;    // this does not work, don't know why 
@@ -681,15 +701,17 @@ void loop()
       debugLn("1");
       const auto image = new image_manipulator{(double**)pic, 54, 74};// casting uint8_t** from return of cam->read to double** 
       debugLn("2");
-      //const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
+      //const auto compressed= image->compress();
       debugLn("3");
+      //const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
+      debugLn("4");
 	    //auto rounded_prediction = int(round(prediction));
       debugLn("prediction");
       //debugLn(int(round(prediction))); //print out picture
       delete image;
       //AC->INTFLAG.bit.COMP0=1;
       //AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt
-      
+      AnalogRead_setup();
       
 
       //DD HERE BATTERY batteryDisplayOk

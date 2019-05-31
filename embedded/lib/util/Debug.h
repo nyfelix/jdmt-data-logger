@@ -1,7 +1,7 @@
 
 #ifndef debug_h
 #define debug_h
-#define DEBUG
+//#define DEBUG
 
 #include <Arduino.h>
 #include <Config.h>
