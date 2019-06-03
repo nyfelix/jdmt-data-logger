@@ -20,7 +20,7 @@
 #include <avr/pgmspace.h>
 //#include <Camera.h>
 #include <image_manipulator.h>
-#include <logistic_regression.h>
+#include "logistic_regression.h"
 #include <CayenneLPP.h>
 
 #include <math.h> // for pow
@@ -43,7 +43,7 @@ int picturesTillSend=2; // The camera just transmits the data with LoRa after "p
 int camera_start_up_time=1000;//time to give the camera to start up
 //******************************** Variables for statemachine and Camera
 
-typedef uint8_t cut_picture[54][74];
+typedef unsigned char cut_picture[3996];
 cut_picture pic;
 
 
@@ -57,7 +57,7 @@ int sleepcounter=0;
 bool cameraModulattached;
 bool batteryDisplayOk; // true if the display of the AEO shows, that the battery is ok
 int pictures_taken_till_last_send=picturesTillSend;
-uint8_t coincidence_probability=0;
+float coincidence_probability=0;
 volatile int ACSetupHandler=0;
 volatile bool sleepbit=false; //first loop without sleeping
 volatile bool testbit=false; //normal mode is no test
@@ -389,29 +389,34 @@ void AC_Handler(){
   
 }
 
+ 
 void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int column_start, int column_end){
   debugLn("cutting picture");
+   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
   
-  int i=0;
-  int t=0;
-  for (int v = row_start; v <(row_end); v++) {
-      for (int u = column_start; u < (column_end); u++) {
-        pic[i][t]=picture_to_cut[v][u];
-        //debug(pic[i][t]);
-       // debug("\t");
+  
+  for (int column_index = column_start; column_index <column_end; column_index++) {
+      for (int row_index = row_start; row_index < row_end; row_index++) {
+        pic[(row_index-row_start)*(row_end-row_start)+(column_index-column_start)]= picture_to_cut[row_index][column_index];
+        /*
+        #ifdef DEBUG
+        debug(pic[(row_index-row_start)*(row_end-row_start)+(column_index-column_start)]);
+        debug("\t");
         delay(1);
-        u++;
+        #endif
+        */
+       
       }
-     // debugLn();
-      t++;
+     debugLn(column_index);
+      
     }
-  
+  AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
 }
 
 void preapareCayennePayload(int nmbrOfPicturesTillSend){
   
   //lpp.reset(); After sending
-  lpp.addDigitalInput(1+(nmbrOfPicturesTillSend-1)*5,coincidence_probability);
+  lpp.addAnalogInput(1+(nmbrOfPicturesTillSend-1)*5,coincidence_probability);
   lpp.addDigitalInput(2+(nmbrOfPicturesTillSend-1)*5,is_there_CameraModul());
   float vbat= analogRead(VBATPIN);
   vbat *= 2;    // we divided by 2, so multiply back
@@ -648,7 +653,7 @@ void setup(){
   envSensor->begin();
   debugLn("Sensor initialized");
 
-  model = new logistic_regression(coef, 1, 74, exp(1), pow);
+  model = new logistic_regression(coef, 54, 74, exp(1), pow);
  
   currState=observing;
 
@@ -678,11 +683,10 @@ void loop()
         break;
       }
       Camera_setup();  
-      //AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
+      
       debugLn("Changing setup Handler");
       ACSetupHandler=1; // Changing to Cam mode
-      //AC->INTFLAG.bit.COMP0=1;
-      //AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
+     
       
       memset(sample0001,0,sizeof(sample0001));// fill the array with 0 so in case the camera is broken
       
@@ -691,48 +695,31 @@ void loop()
       
       
       #ifdef DEBUG
-      printPicture();
-             
+      printPicture();     
       #endif
-      
-      ACSetupHandler=0; // Changing to default mode  
-      //AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt
+      ACSetupHandler=0; // Changing to default mode 
       cut_picture_to_size(sample0001,6,60,4,78);
+      //memset(pic, 0, sizeof(pic));
+      
+
       debugLn("1");
-      const auto image = new image_manipulator{(double**)pic, 54, 74};// casting uint8_t** from return of cam->read to double** 
+      //const auto image = new image_manipulator{(float**)pic, 54, 74};// casting uint8_t** from return of cam->read to double** 
       debugLn("2");
       //const auto compressed= image->compress();
       debugLn("3");
-      //const auto prediction = model->predict(image->compress()); //evaluate the picture in over the logistic_regression model
+      coincidence_probability = model->predict_compressed(pic); //evaluate the picture in over the logistic_regression model
+     
       debugLn("4");
 	    //auto rounded_prediction = int(round(prediction));
-      debugLn("prediction");
+      debug("prediction");
+      debugLn(coincidence_probability);
       //debugLn(int(round(prediction))); //print out picture
-      delete image;
-      //AC->INTFLAG.bit.COMP0=1;
-      //AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt
+      //delete image;
+      
       AnalogRead_setup();
       
 
-      //DD HERE BATTERY batteryDisplayOk
-      //AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
-     // AC->COMPCTRL[0].reg = 0x0; // set all to 0
-      //AC->CTRLA.bit.SWRST = 0x00;
-      //AC->SCALER[0].bit.VALUE = 0;
-      //AC->COMPCTRL[0].bit.ENABLE = 0x1; 
-      //analogReference(AR_DEFAULT);
-      
-      //AC->INTENSET.bit.COMP0 = 0x1;  //Disable interrupt 
-      //debug("register: ");
-      //pinMode(VBATPIN,INPUT);
-      //debugLn(AC->INTFLAG.reg);
-      
-      //int bla= digitalRead(VBATPIN);
-      //debugLn(bla);
-      //evaluation the picture
-      
-      
-      
+    
        pictures_taken_till_last_send++;
        CameraOFF()
        
@@ -755,11 +742,13 @@ void loop()
         break;
       }
       */
+     
      if(is_there_CameraModul()==0){
         debugLn("there is no camera");
         currState=emergency;
         break;
      }
+     
     
       
       //if batteryDisplayOk== true
@@ -820,17 +809,16 @@ void loop()
 
     case emergency:{ 
       debugLn("emergency...");
-      delay(2000);
       digitalWrite(LED_BUILTIN, HIGH);
       debugLn("Sending LoRa Data...");
-      preparePayolad();
-      lora.sendData(payload, sizeof(payload), lora.frameCounter);
+      lora.sendData(lpp.getBuffer(), lpp.getSize(), lora.frameCounter);
       debug("Frame Counter: "); 
       debugLn(lora.frameCounter);
       lora.frameCounter++;
+      lpp.reset();
       delay(1000);
       digitalWrite(LED_BUILTIN, LOW);
-      debugLn("delaying...");
+      debugLn("deleying");
       delay(5000);
       break;
     }
