@@ -382,11 +382,8 @@ void AC_Handler(){
 	  if (AC->INTFLAG.reg & AC_INTFLAG_COMP1){
 		//spi_potenciometro_write(pot_count++);
 		AC->INTFLAG.reg = AC_INTFLAG_COMP1;
-    
-	  }
-   
-  }
-  
+	  } 
+  }  
 }
 
  
@@ -407,7 +404,6 @@ void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int
         */
        
       }
-     debugLn(column_index);
       
     }
   AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
@@ -421,7 +417,7 @@ void preapareCayennePayload(int nmbrOfPicturesTillSend){
   float vbat= analogRead(VBATPIN);
   vbat *= 2;    // we divided by 2, so multiply back
   vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
-  vbat /= 1024; // convert to voltage
+  vbat /= 1024; // convert to voltage ->10 bit ADC
   debug("Battery: "); debug(vbat);
   debugLn(" V");
   lpp.addAnalogInput(3+(nmbrOfPicturesTillSend-1)*5,vbat);
@@ -488,14 +484,13 @@ void watchdogSleep(int time_s, volatile bool*sleepflag){
     Watchdog.sleep(30000);//sleeptime in ms  
     sleepcounter++;
     if(sleepcounter>=sleep_rep){
-      *sleepflag=false;
-          
+      *sleepflag=false;    
       sleepcounter=0; // reset the sleepcounter
     }
   }
-  
   *sleepflag=true;// reset sleepbit
 }
+
 void AnalogRead_setup(){
   //Initialize
 
@@ -783,6 +778,7 @@ void loop()
       */
       digitalWrite(LED_BUILTIN, HIGH);
       debugLn("Sending LoRa Data...");
+     
       lora.sendData(lpp.getBuffer(), lpp.getSize(), lora.frameCounter);
       debug("Frame Counter: "); 
       debugLn(lora.frameCounter);
@@ -811,6 +807,7 @@ void loop()
       debugLn("emergency...");
       digitalWrite(LED_BUILTIN, HIGH);
       debugLn("Sending LoRa Data...");
+      preapareCayennePayload(1);
       lora.sendData(lpp.getBuffer(), lpp.getSize(), lora.frameCounter);
       debug("Frame Counter: "); 
       debugLn(lora.frameCounter);
