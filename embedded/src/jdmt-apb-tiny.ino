@@ -376,11 +376,11 @@ void AC_Handler(){
     //**************default AC_Handler() ******************************************
     
     if (AC->INTFLAG.reg & AC_INTFLAG_COMP0){
-		//spi_potenciometro_write(pot_count--);
+		
 		AC->INTFLAG.reg = AC_INTFLAG_COMP0;
 	  }
 	  if (AC->INTFLAG.reg & AC_INTFLAG_COMP1){
-		//spi_potenciometro_write(pot_count++);
+		
 		AC->INTFLAG.reg = AC_INTFLAG_COMP1;
 	  } 
   }  
@@ -498,7 +498,6 @@ void AnalogRead_setup(){
   AC->CTRLA.bit.ENABLE = 0; //disable comp 
   AC->COMPCTRL[0].bit.ENABLE = 0x00;    // Disable comp
   ADC->CTRLA.bit.SWRST = 0x00; //reset ADC
-  ADC->CTRLB.bit.RESSEL = 0x3; // Resolution of ADC to 
   ADC->CTRLB.bit.RESSEL = 0x2;       // Resolution = 10 bit 
   AC->COMPCTRL[0].bit.SINGLE = 0x0;    // Setting continous mode
   ADC->SAMPCTRL.bit.SAMPLEN = 0xA; //Set 1024 Samples
@@ -705,39 +704,20 @@ void loop()
       coincidence_probability = model->predict_compressed(pic); //evaluate the picture in over the logistic_regression model
      
       debugLn("4");
-	    //auto rounded_prediction = int(round(prediction));
+	    
       debug("prediction");
       debugLn(coincidence_probability);
-      //debugLn(int(round(prediction))); //print out picture
-      //delete image;
+      
       
       AnalogRead_setup();
-      
 
-    
        pictures_taken_till_last_send++;
        CameraOFF()
-       
-       debugLn("cam off");
-       //delay(10000);
-      preapareCayennePayload(pictures_taken_till_last_send);
-      
-      
-      //debugLn("true or false");
-      //debugLn("sleepflag: ");
-      //debugLn(sleepbit);
-      //debugLn(cam->is_there_CameraModul());
 
-      //if batteryDisplayOk== false
-      /*
-      batteryDisplayOk=true;
-      
-      if(batteryDisplayOk==false||cam->is_there_CameraModul()==false){//either battary is bad or cameramodul is not attached switch to emergency state
-        currState=emergency;
-        break;
-      }
-      */
-     
+       debugLn("cam off");
+       
+      preapareCayennePayload(pictures_taken_till_last_send);
+
      if(is_there_CameraModul()==0){
         debugLn("there is no camera");
         currState=emergency;
