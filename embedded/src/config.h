@@ -11,4 +11,6 @@
 #endif
 #define SLEEPTIME_SECONDS 3600
 
+#define Device_Position_latitude  47.533163f
+#define Device_Position_longitude  8.731643f
 //#define DEBUG
