@@ -2,28 +2,12 @@
 
 ## Requirement
 
-- aws cli
-- sam cli
-- .env File with the following entries:
-    - accessKeyId
-    - secretAccessKey
-    - region
-    - gkey --> Google-Maps-API-Key
-    - endpoint
-    - query url
-    - data url
-
- ## Deployment
-
-Upload src and lambda directory to jdmt.develop.
-
-```
-npm run upload
-```
+- .env File with the following entry:
+  - Google-Maps-API-Key
 
 ## Local testing
 
-starts the frontend and backend (with hot reloading) locally.
+starts the frontend locally.
 
 ```
 npm start

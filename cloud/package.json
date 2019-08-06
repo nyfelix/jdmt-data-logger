@@ -3,11 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "aws-sdk": "^2.358.0",
     "babel-polyfill": "^6.26.0",
     "chart.js": "^2.7.2",
-    "dotenv": "^6.1.0",
-    "concurrently": "^4.1.0",
+    "elasticsearch": "^16.3.0",
     "history": "^4.7.2",
     "react": "^16.4.1",
     "react-chartjs-2": "^2.7.4",
@@ -21,18 +19,10 @@
     "react-scripts": "1.1.4",
     "redux": "^4.0.0",
     "redux-thunk": "^2.3.0",
-    "s3": "^4.4.0",
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {
-    "deploy": "npm run deploy:frontend && npm run build:lambda && npm run deploy:lambda",
-    "deploy:frontend": "npm run clean && parcel build ./src/index.html --out-dir build && npx ./lambda/deploy.js && npm run clean",
-    "build:lambda": "sam package --template-file lambda/template.yml  --output-template-file lambda/packaged.yaml  --s3-bucket jdmt-deployment",
-    "deploy:lambda": "sam deploy --template-file lambda/packaged.yaml  --stack-name jdmt  --capabilities CAPABILITY_IAM ",
-    "start:frontend": "NODE_ENV=DEBUG parcel ./src/index.html --open",
-    "start:lambda": "sam local start-api -t ./lambda/template.yml",
-    "start": "concurrently \"npm run start:frontend\" \"npm run start:lambda\"",
-    "clean": "rm -rfd ./build"
+    "start": "parcel ./src/index.html --open"
   },
   "devDependencies": {
     "@types/googlemaps": "^3.30.16",
@@ -43,7 +33,7 @@
     "eslint-plugin-import": "^2.13.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.10.0",
-    "parcel": "^1.10.3"
+    "parcel": "^1.12.3"
   },
   "eslintConfig": {
     "extends": "airbnb",
