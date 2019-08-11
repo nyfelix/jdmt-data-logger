@@ -43,7 +43,7 @@ int PIN_analog_comp_2=13; // for camera modul
 //***********************
 
 //****************** SETTINGS **********************************************
-int Sleepduration_s=60; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
+int Sleepduration_s=SENDING_PERIOD; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
 #ifdef CUSTOM_LORA_DATA
   int picturesTillSend=1; // CUSTOM_LORA_DATA sends all data immediately after they where recorded
 #else
@@ -758,12 +758,32 @@ uint8_t AppSkey[16] = APPSKEY;
 // Device Address (MSB)
 uint8_t DevAddr[4] = DEVADDR;
 
+#ifdef SEND_PICTURES
+/*
+const char *devAddr = DEVADDR2;
+const char *nwkSKey = NWKSKEY2;
+const char *appSKey = APPSKEY2;
+*/
+#endif
+
 #ifdef FEATHER32U4
   // Pinout for Adafruit Feather 32u4 LoRa
-  TinyLoRa lora = TinyLoRa(7, 8);
+  TinyLoRa LoRa_jdmt_data_logger = TinyLoRa(7, 8);
+  TinyLoRa LoRa_jdmt_data_logger_pictures = TinyLoRa(3, 8);
 #else
   // Pinout for Adafruit Feather M0 LoRa
-  TinyLoRa lora = TinyLoRa(3, 8);
+  TinyLoRa LoRa_jdmt_data_logger = TinyLoRa(3, 8);
+  
+  /*#ifdef SEND_PICTURES
+    #define loraSerial Serial1
+    #define debugSerial Serial
+
+    // Replace REPLACE_ME with TTN_FP_EU868 or TTN_FP_US915
+    #define freqPlan TTN_FP_EU868
+
+    TheThingsNetwork ttn(loraSerial, debugSerial, freqPlan);
+    #endif
+    */
 #endif
 //*********************************************************************
 
@@ -772,7 +792,7 @@ uint8_t DevAddr[4] = DEVADDR;
 
 unsigned char payload[13];
 
-unsigned char Hellomsg[11] = {"hello LoRa"};
+
 //****************************************
 
 //********************************** Constructor for Object ***********************
@@ -780,6 +800,7 @@ unsigned char Hellomsg[11] = {"hello LoRa"};
 SI7021 * envSensor;
 logistic_regression * model;
 CayenneLPP lpp(51);
+image_manipulator * picture_compro;
 //******************************************************************************3
 
 void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int column_start, int column_end){
@@ -914,10 +935,13 @@ void  preparePayolad() {
   debugLn(Device_Position_latitude);
   mapToPayload(9, Device_Position_latitude/90);
   debug("Device Lng: ");
-  float bla =1.2345
   debugLn(Device_Position_longitude);
   mapToPayload(11, Device_Position_longitude/180);  
   debugLn();
+  #ifdef SEND_PICTURES
+  debug("Number of bytes in compromised picture");
+  debugLn(picture_compro->compromise_image_return_new_index(pic,3996));
+  #endif
 }
 
 void alert(){
@@ -943,6 +967,51 @@ void watchdogSleep(int time_s, volatile bool*sleepflag){
   }
   *sleepflag=true;// reset sleepbit
 }
+
+void simulateSleep(int time_s, volatile bool*sleepflag){
+
+  double sleep_rep=time_s/30;
+  while (*sleepflag==true){
+    delay(30000);//sleeptime in ms  
+    sleepcounter++;
+    if(sleepcounter>=sleep_rep){
+      *sleepflag=false;    
+      sleepcounter=0; // reset the sleepcounter
+    }
+  }
+  *sleepflag=true;// reset sleepbit
+}
+
+
+void take_and_evaluate_Picture(){
+  Camera_setup();  
+      
+      debugLn("Changing setup Handler");
+      ACSetupHandler=1; // Changing to Cam mode
+     
+      
+      memset(sample0001,0,sizeof(sample0001));// fill the array with 0 so in case the camera is broken it will be recognized
+      
+      CameraON(); // start up camera
+      debugLn("cam on");
+      
+      
+      #ifdef PRINT_PICTURE
+      print_whole_Picture(); 
+      //printPicture();
+      #endif
+
+      ACSetupHandler=0; // Changing to default mode 
+      cut_picture_to_size(sample0001,6,60,4,78);   
+      LiklihoodDeviceOk = model->predict(pic); //evaluate the picture in over the logistic_regression model
+ 
+      AnalogRead_setup();
+
+      pictures_taken_till_last_send++;
+      CameraOFF()
+
+      debugLn("cam off");
+}
 void setup(){  
 
   /*****************************PINS FOR CAMERA SIGNAL********************************************************/
@@ -967,7 +1036,7 @@ void setup(){
   
   #if defined(DEBUG) || defined(SAMPLE_MODE)
     Serial.begin(9600);
-    //while (! Serial);
+    while (! Serial);
     debugLn("Serial started");
   #endif 
    
@@ -978,11 +1047,13 @@ void setup(){
   #ifndef SAMPLE_MODE
   debug("Starting LoRa...");
   // define multi-channel sending
-  lora.setChannel(MULTI);
+  LoRa_jdmt_data_logger.setChannel(MULTI);
+  
   // set datarate
-  lora.setDatarate(SF7BW125);
+  LoRa_jdmt_data_logger.setDatarate(SF7BW125);
+  
    //Disabled because LoRa-Modul is broken
-  if(!lora.begin())
+  if(!LoRa_jdmt_data_logger.begin())
   {
     debugLn("Failed: Check your radio");
     while(true){
@@ -995,7 +1066,7 @@ void setup(){
   debugLn(" OK");
  
   
-  //lora.sendData(Hellomsg, sizeof(Hellomsg), lora.frameCounter);
+
   envSensor= new SI7021();
   envSensor->begin();
   debugLn("Sensor initialized");
@@ -1003,10 +1074,13 @@ void setup(){
   model = new logistic_regression(-0.00000112,coef, 3996, exp(1), pow);
  
   #ifndef SAMPLE_MODE
+  //take_and_evaluate_Picture();
   currState = observing;
   #else
   currState = take_samples;
   #endif
+
+
 
 }
 
@@ -1019,13 +1093,13 @@ void loop()
       
       digitalWrite(LED_BUILTIN,LOW);
       #ifndef DEEPSLEEP
-        delay(1000*Sleepduration_s);
+        simulateSleep(Sleepduration_s,&sleepbit);
       #endif
       #ifdef DEEPSLEEP 
         watchdogSleep(Sleepduration_s,&sleepbit);
         #ifdef DEBUG
          Serial.begin(9600);
-          while (! Serial);
+          //while (! Serial);
           Serial.print("Serial started");
         #endif 
       #endif
@@ -1039,36 +1113,8 @@ void loop()
         testbit=false;
         break;
       }
-      Camera_setup();  
       
-      debugLn("Changing setup Handler");
-      ACSetupHandler=1; // Changing to Cam mode
-     
-      
-      memset(sample0001,0,sizeof(sample0001));// fill the array with 0 so in case the camera is broken it will be recognized
-      
-      CameraON(); // start up camera
-      debugLn("cam on");
-      
-      
-      #ifdef PRINT_PICTURE
-      print_whole_Picture(); 
-      //printPicture();
-      #endif
-
-      ACSetupHandler=0; // Changing to default mode 
-      cut_picture_to_size(sample0001,6,60,4,78);   
-      LiklihoodDeviceOk = model->predict(pic); //evaluate the picture in over the logistic_regression model
-     
-      
-      
-      
-      AnalogRead_setup();
-
-      pictures_taken_till_last_send++;
-      CameraOFF()
-
-      debugLn("cam off");
+      take_and_evaluate_Picture();
 
       #ifndef CUSTOM_LORA_DATA 
         preapareCayennePayload(pictures_taken_till_last_send);
@@ -1100,10 +1146,10 @@ void loop()
       #ifdef DEBUG
       print_payload();
       #endif
-      lora.sendData(payload, sizeof(payload), lora.frameCounter);
+      LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
       debug("Frame Counter: "); 
-      debugLn(lora.frameCounter);
-      lora.frameCounter++;
+      debugLn(LoRa_jdmt_data_logger.frameCounter);
+      LoRa_jdmt_data_logger.frameCounter++;
       delay(1000);
       digitalWrite(LED_BUILTIN, LOW);
      
@@ -1111,10 +1157,10 @@ void loop()
       #else
       digitalWrite(LED_BUILTIN, HIGH);
       debugLn("Sending LoRa Data...");
-      lora.sendData(lpp.getBuffer(), lpp.getSize(), lora.frameCounter);
+      LoRa_jdmt_data_logger.sendData(lpp.getBuffer(), lpp.getSize(), LoRa_jdmt_data_logger.frameCounter);
       debug("Frame Counter: "); 
-      debugLn(lora.frameCounter);
-      lora.frameCounter++;
+      debugLn(LoRa_jdmt_data_logger.frameCounter);
+      LoRa_jdmt_data_logger.frameCounter++;
       lpp.reset();
       delay(1000);
       digitalWrite(LED_BUILTIN, LOW);
@@ -1143,10 +1189,10 @@ void loop()
       digitalWrite(LED_BUILTIN, HIGH);
       debugLn("Sending LoRa Data...");
       preparePayolad();
-      lora.sendData(payload, sizeof(payload), lora.frameCounter);
+      LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
       debug("Frame Counter: "); 
-      debugLn(lora.frameCounter);
-      lora.frameCounter++;
+      debugLn(LoRa_jdmt_data_logger.frameCounter);
+      LoRa_jdmt_data_logger.frameCounter++;
       delay(1000);
       digitalWrite(LED_BUILTIN, LOW);
       debugLn("delaying...");
@@ -1154,10 +1200,10 @@ void loop()
       #else
       digitalWrite(LED_BUILTIN, HIGH);
       debugLn("Sending LoRa Data...");
-      lora.sendData(lpp.getBuffer(), lpp.getSize(), lora.frameCounter);
+      LoRa_jdmt_data_logger.sendData(lpp.getBuffer(), lpp.getSize(), LoRa_jdmt_data_logger.frameCounter);
       debug("Frame Counter: "); 
-      debugLn(lora.frameCounter);
-      lora.frameCounter++;
+      debugLn(LoRa_jdmt_data_logger.frameCounter);
+      LoRa_jdmt_data_logger.frameCounter++;
       lpp.reset();
       delay(1000);
       digitalWrite(LED_BUILTIN, LOW);

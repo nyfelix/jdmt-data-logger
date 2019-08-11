@@ -301,9 +301,11 @@ bool TinyLoRa::begin()
   pinMode(_irq, OUTPUT);
 
   uint8_t ver = RFM_Read(0x42);
+  /*
   if(ver!=18){
     return 0;
   }
+  */
   
   //Switch RFM to sleep
   RFM_Write(0x01,MODE_SLEEP);

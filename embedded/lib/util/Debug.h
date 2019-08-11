@@ -1,10 +1,9 @@
 #include <config.h>
-#ifndef debug_h
-#define debug_h
-#define DEBUG
-
 #include <Arduino.h>
 #include <Config.h>
+
+#ifndef debug_h
+#define debug_h
 
 #ifdef DEBUG
 #define debug(...) Serial.print(__VA_ARGS__)
@@ -19,3 +18,4 @@
 #endif
 
 #endif
+
