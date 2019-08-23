@@ -1,6 +1,8 @@
+#pragma once
 /***Here are the functions needed for using the camera with ntsc***/
 #include <Arduino.h>
 #include <Debug.h>
+#include <global_variable.h>
 /************** VARIABLES FOR CAMERAMODUL **********/
 /************Camera Modul Pins *****************************/
 int PIN_source_MOSFET_camera_power_control=10;// Mosfet for camera modul Power mangement
@@ -37,8 +39,17 @@ volatile int nopspershift = 2; // 2
 volatile int a; 
 volatile int rows = 60;  // rows from above array
 volatile int columns = 80; // colums from above 
+
+
 //************************************************************************************ 
 
+
+uint8_t is_there_CameraModul(){
+  if(digitalRead(PIN_Camera_attached_check)== LOW){
+    return 0;
+  }
+  return 1;
+}
 
 void CameraON(){
   digitalWrite(PIN_source_MOSFET_camera_power_control, LOW);
@@ -47,6 +58,50 @@ void CameraON(){
 
 void CameraOFF(){
   digitalWrite(PIN_source_MOSFET_camera_power_control, HIGH);
+}
+
+void CameraBlink(){
+  CameraON();
+  delay(1000);
+  CameraOFF();
+  delay(1000);
+  CameraON();
+  delay(1000);
+  CameraOFF();
+  delay(1000);
+  CameraON();
+  delay(1000);
+  CameraOFF();
+  delay(1000);
+}
+
+void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int column_start, int column_end){
+   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
+  int i=0;
+  
+  for (int column_index = column_start; column_index <column_end; column_index++) {
+      for (int row_index = row_start; row_index < row_end; row_index++) {
+        pic[i]= picture_to_cut[row_index][column_index];
+        i++;
+      }
+    }
+  AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
+}
+
+void print_cut_Picture_array(){
+  #ifdef SAMPLE_MODE
+    Serial.print("Sample Nr.: ");
+    Serial.println(picture_counter);
+    picture_counter++;
+  #endif
+    Serial.print("{");
+    for(int v = 0; v < sizeof(pic); v++) {
+        Serial.print(pic[v]);
+        if(v!=sizeof(pic)-1){
+          Serial.print(", ");
+        } 
+    }
+    Serial.println("}"); 
 }
 void print_whole_Picture(){
     AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
@@ -92,6 +147,7 @@ void printPicture(){
      AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
      debugLn("end printing");
 }
+
 
 void AC_Handler_Camera() {
   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt
@@ -263,8 +319,6 @@ void AC_Handler_Camera() {
    AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrup
 }
 
-
-
 void AnalogRead_setup(){
   //Initialize
 
@@ -366,3 +420,34 @@ void Camera_setup(){
 
   /*************************************************************************************************************/
   }
+
+  
+void take_and_evaluate_Picture(){
+  Camera_setup();  
+      
+      debugLn("Changing setup Handler");
+      ACSetupHandler=1; // Changing to Cam mode
+     
+      
+      memset(sample0001,0,sizeof(sample0001));// fill the array with 0 so in case the camera is broken it will be recognized
+      
+      CameraON(); // start up camera
+      debugLn("cam on");
+      
+      
+      #ifdef PRINT_PICTURE
+      print_whole_Picture(); 
+      //printPicture();
+      #endif
+
+      ACSetupHandler=0; // Changing to default mode 
+      cut_picture_to_size(sample0001,6,60,4,78);   
+      LiklihoodDeviceOk = model->predict(pic); //evaluate the picture in over the logistic_regression model
+ 
+      AnalogRead_setup();
+
+      pictures_taken_till_last_send++;
+      CameraOFF()
+
+      debugLn("cam off");
+}

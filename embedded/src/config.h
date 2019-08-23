@@ -1,16 +1,18 @@
-
+#pragma once
 /*************************** *******PRECOMPILE SETTINGS *******************************/
 //#define DEBUG
 #define DEEPSLEEP
-#define NO_EMERGENCY// programm will not change to emergency state even the camermodul was removed
+//#define NO_EMERGENCY// programm will not change to emergency state even the camermodul was removed
 //#define SAMPLE_MODE // Print nummerated Picture Samples  by pressing the spacebar
 #define CUSTOM_LORA_DATA  //Sends the Data over Lora in a custom format to directly store in Databank
 //#define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
 //#define TEST_BUTTON // Activates the Test button. No fully developt!
-#define SEND_PICTURES
+//#define SEND_PICTURES
+//#SERIAL_BEGIN // Serial beginn
 
-#define DEVICE_NR 2 // Handling the diffrent devices
-#define SENDING_PERIOD 180;
+#define DEVICE_NR 1  // Handling the diffrent devices
+#define DATARATE SF9BW125
+#define SENDING_PERIOD 3600
 
 #ifdef FEATHER32U4
   #define VBATPIN A9 
@@ -41,6 +43,17 @@
   #define NWKSKEY { 0xC6, 0x1B, 0xC7, 0x68, 0x49, 0x9E, 0xF2, 0x8E, 0x63, 0x26, 0x0D, 0x34, 0xEC, 0x3A, 0x46, 0xE1 }
   #define APPSKEY { 0xDC, 0xB1, 0x9A, 0xDB, 0xA4, 0x90, 0x98, 0xD8, 0x14, 0x08, 0x9B, 0x77, 0x72, 0xA3, 0xF0, 0xFD }
   #define DEVADDR { 0x26, 0x01, 0x17, 0x02 }
+
+  #define Device_Position_latitude  47.533163f
+  #define Device_Position_longitude  8.731643f
+
+#endif
+
+#if DEVICE_NR==3
+                    
+  #define NWKSKEY { 0xB0, 0xB4, 0x60, 0x6C, 0x0A, 0x1C, 0x1D, 0xC1, 0xD4, 0x13, 0x4B, 0x15, 0xB0, 0x3A, 0x6F, 0x62}
+  #define APPSKEY { 0xFB, 0x95, 0xEC, 0xBA, 0xF9, 0x8B, 0xA9, 0xFB, 0x2A, 0x69, 0x19, 0xF6, 0x40, 0xA3, 0xA0, 0xD4}
+  #define DEVADDR { 0x26, 0x01, 0x11, 0x3A }
 
   #define Device_Position_latitude  47.533163f
   #define Device_Position_longitude  8.731643f

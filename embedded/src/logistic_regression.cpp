@@ -1,3 +1,5 @@
+#pragma once
+
 #include "logistic_regression.h"
 
 double logistic_regression::predict(unsigned char* matrix) const
