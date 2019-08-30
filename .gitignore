@@ -1,8 +1,4 @@
-Debug
-packages.config
-*.vcxproj*
-packages
-.vs
-*.sln*
-*.htm
-.vscode
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
