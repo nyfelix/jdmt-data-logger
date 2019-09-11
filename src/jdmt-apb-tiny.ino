@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <camera.h>
 #include <sending_functions.h>
+#include <take_samples_functions.h>
 #include <global_variable.h>
 #include <Debug.h>
 #include <TinyLoRa.h>
@@ -346,7 +347,8 @@ void loop()
     }
 
     case take_samples:{
-      Camera_setup();
+      run_take_samples();
+     /* Camera_setup();
       ACSetupHandler=1; // Changing to Cam mode
       memset(sample0001,0,sizeof(sample0001));// fill the array with 0 so in case the camera is broken
       CameraON(); // start up camera
@@ -363,6 +365,7 @@ void loop()
         } 
       delay(100);
       break;
+      */
     }
   }       
 }

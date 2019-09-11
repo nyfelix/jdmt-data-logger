@@ -1,18 +1,22 @@
 #pragma once
+
+
 /*************************** *******PRECOMPILE SETTINGS *******************************/
 //#define DEBUG
-#define DEEPSLEEP
+//#define DEEPSLEEP
 //#define NO_EMERGENCY// programm will not change to emergency state even the camermodul was removed
-//#define SAMPLE_MODE // Print nummerated Picture Samples  by pressing the spacebar
+#define SAMPLE_MODE // Print nummerated Picture Samples  by pressing the spacebar
 #define CUSTOM_LORA_DATA  //Sends the Data over Lora in a custom format to directly store in Databank
 //#define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
 //#define TEST_BUTTON // Activates the Test button. No fully developt!
 //#define SEND_PICTURES
 //#SERIAL_BEGIN // Serial beginn
 
-#define DEVICE_NR 1  // Handling the diffrent devices
-#define DATARATE SF9BW125
-#define SENDING_PERIOD 3600
+
+#define DEVICE_TYPE 1 //0== ZOLL AED 3, 1== CU_S
+#define DEVICE_NR 3  // Handling the diffrent devices
+#define DATARATE SF7BW125
+#define SENDING_PERIOD 30
 
 #ifdef FEATHER32U4
   #define VBATPIN A9 

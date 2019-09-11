@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Debug.h>
 #include <global_variable.h>
+#include <models.h>
 /************** VARIABLES FOR CAMERAMODUL **********/
 /************Camera Modul Pins *****************************/
 int PIN_source_MOSFET_camera_power_control=10;// Mosfet for camera modul Power mangement
@@ -90,18 +91,20 @@ void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int
 
 void print_cut_Picture_array(){
   #ifdef SAMPLE_MODE
+  /*
     Serial.print("Sample Nr.: ");
     Serial.println(picture_counter);
     picture_counter++;
+    */ 
   #endif
-    Serial.print("{");
+    Serial.print("[");
     for(int v = 0; v < sizeof(pic); v++) {
         Serial.print(pic[v]);
         if(v!=sizeof(pic)-1){
           Serial.print(", ");
         } 
     }
-    Serial.println("}"); 
+    Serial.print("]"); 
 }
 void print_whole_Picture(){
     AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
