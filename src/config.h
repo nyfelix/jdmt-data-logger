@@ -1,19 +1,27 @@
-#pragma once
+/*! 
+These next few lines will form a comment block    
+To start a new paragraph add an empty line    
+To end the comment block type asterik and then forward slash. 
+*/
 
+#pragma once
+/************************************************
+ *  Precompile setting blblabla
+ ***********************************************/
 
 /*************************** *******PRECOMPILE SETTINGS *******************************/
-//#define DEBUG
+#define DEBUG /*!< Detailed description after the member */
 //#define DEEPSLEEP
 //#define NO_EMERGENCY// programm will not change to emergency state even the camermodul was removed
-#define SAMPLE_MODE // Print nummerated Picture Samples  by pressing the spacebar
+//#define SAMPLE_MODE // Print nummerated Picture Samples  by pressing the spacebar
 #define CUSTOM_LORA_DATA  //Sends the Data over Lora in a custom format to directly store in Databank
 //#define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
 //#define TEST_BUTTON // Activates the Test button. No fully developt!
 //#define SEND_PICTURES
-//#SERIAL_BEGIN // Serial beginn
+//#define SERIAL_BEGIN // Serial beginn
+#define L1Regularisation
 
-
-#define DEVICE_TYPE 1 //0== ZOLL AED 3, 1== CU_S
+#define DEVICE_TYPE 1 //0== ZOLL AED 3, 1== CU_S, 2== ZOLL AED PLUS
 #define DEVICE_NR 3  // Handling the diffrent devices
 #define DATARATE SF7BW125
 #define SENDING_PERIOD 30

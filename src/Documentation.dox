@@ -1,0 +1,32 @@
+/*! \mainpage Documentation of JDMT embedded
+ *
+ * \section intro_sec Introduction
+ *
+ * This documentation will you give a short overview of the code that is used on the embedded device for the JDMT data logger project.
+    It starts with a manual which describes how to set up the configuration of the device, followed by a description of the headers and functions used in the programm. 
+    For coding Visua Studio Code with the PlatformIO plug in was used, if you're using a diffrent enviroment some descriptions may differ.
+ *
+ *  \section install_sec Device configuration
+    The whole configuration of a device is set up in the config.h file. At the top of this header file you can configure the mode in which the emedded device should run and some 
+    settings over the #define precompile settings.
+
+    \subsection Configuration Configuration modes
+    \subsubsection Configuration_operating Configuration for device in field operation
+      To set up the device for field operation mode the comment out all the #define exept the \ref #define DEEPSLEEP and #define CUSTOM_LORA_DATA.\\
+   
+   \subsubsection Configuration_Sample Configuration sample mode
+
+   \subsubsection Configuration_Test Configuration for model testing
+   ..... work in progress
+
+   \subsection Al#defines Descriptions of the #defines
+
+   
+
+    \subsection Setup Setup a new device
+
+ *
+ * 
+ *
+ * etc...
+ */
