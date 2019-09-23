@@ -1,3 +1,6 @@
+/*!  \name
+ * In this file are the functions needed for creating samples.
+ */
 
 #pragma once
 
@@ -51,7 +54,7 @@ void read_serial_and_react(){
      if (Serial.available() > 0 && is_there_CameraModul()==1){
         int x =Serial.read();
         if(x==32){// 103 in ASCII is  Space
-            Serial.print(", ");
+            //Serial.print("[ ");
             take_sample();
             print_cut_Picture_array();
             x=0;

@@ -8,6 +8,11 @@ ZOLL_AED_3,
 ZOLL_AED_PLUS,
 } DEV_TYPE;
 */
+#if DEVICE_TYPE==1 || DEVICE_TYPE==2
+#define L1Regularisation
+#endif
+
+
 #if DEVICE_TYPE==0
 
     const double beta_zero=-0.00000112;

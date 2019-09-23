@@ -1,8 +1,15 @@
-/*! 
-These next few lines will form a comment block    
-To start a new paragraph add an empty line    
-To end the comment block type asterik and then forward slash. 
+/*!  \name 
+This file is for setting up the embedded device mode and tune the settings. The setup is driven by precompile comands.
 */
+
+
+/** \file config.h
+ * A brief file description.
+ * A more elaborated file description.
+ */
+
+
+
 
 #pragma once
 /************************************************
@@ -10,21 +17,101 @@ To end the comment block type asterik and then forward slash.
  ***********************************************/
 
 /*************************** *******PRECOMPILE SETTINGS *******************************/
-#define DEBUG /*!< Detailed description after the member */
+//#define DEBUG 
 //#define DEEPSLEEP
 //#define NO_EMERGENCY// programm will not change to emergency state even the camermodul was removed
 //#define SAMPLE_MODE // Print nummerated Picture Samples  by pressing the spacebar
-#define CUSTOM_LORA_DATA  //Sends the Data over Lora in a custom format to directly store in Databank
 //#define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
-//#define TEST_BUTTON // Activates the Test button. No fully developt!
+//#define TEST_BUTTON // Activates the Test button. Not fully developt!
 //#define SEND_PICTURES
 //#define SERIAL_BEGIN // Serial beginn
-#define L1Regularisation
+#define TEST_AND_SAMPLES
+
 
 #define DEVICE_TYPE 1 //0== ZOLL AED 3, 1== CU_S, 2== ZOLL AED PLUS
 #define DEVICE_NR 3  // Handling the diffrent devices
 #define DATARATE SF7BW125
 #define SENDING_PERIOD 30
+
+
+
+/**
+ *\def DEVICE_TYPE
+    Specify the AED device type. \n
+    0-> ZOLL AED 3\n
+    1-> CU_ST1 Auto \n
+    2->ZOll AED PLUS \n
+  \def DEVICE_NR
+    Enter the serial number of the logger device. This number is essential for handling the device fleet. Its important that there aren't two devices with the same number, 
+    so the TTN can distinguish between the devices.
+  \def DATARATE
+    The DATARATE sets the spreading factor and the bandwith of the radio transmition. If the transmission isn't stable, encreasing the spreading factor can help. But higher 
+    spreading factor also means lower datarates and therefore energy consumption is higher. Its possibel to set the Datarate from the lowes spreading factor of SF7BW125 to the
+    highest of SF12BW125. \
+    ATTENTION: If the SENDING_PERIOD is low and the spreading factor hight. The TTN gets overloaded. For more information please read: 
+    https://www.thethingsnetwork.org/forum/t/limitations-data-rate-packet-size-30-seconds-uplink-and-10-messages-downlink-per-day-fair-access-policy/1300 
+  \def SENDING_PERIOD
+    The SENDING_PERIOD defines the frequency in which the embedded device take and evaluate a picture and send the resulting data over LoRa. The value is in second and should
+    be a manifold of 30.\n
+    Due to clockspeed differences the frequency in DEEPSLEEP mode is higher than expected.
+ 
+  \def DEBUG
+    Setting DEBUG, will enable diffrent outputs, like current state and data to send, over the console. The serial communication is set to 9600 Baud.
+    If DEEPSLEEP is also enabled, the communication will break up, when the device enters the sleep mode. 
+  \def APPSKEY
+    This 16-byte key is used for the LoRa communication, so that the TTN can identifier to which application the data belongs.
+  \def DEEPSLEEP
+    If DEEPSLEEP is defined, the device will enter deepsleep instead of a dealy. 
+  \def NO_EMERGENCY
+    Is NO_EMERGENCY is defined, the state machine in jdmt.apb-tiny.ino will not enter emergency state if the cameramodul get disconnected.
+  \def SAMPLE_MODE
+    This Mode is used to take picture for training a model. For operation the device has to be connectet over serial to the computer. With the the "g" Key the device starts
+    "good sample" set. To add additional pictures to the sample use the spacebar. To end it press "e". To start with the "bad samples" picture set, press the "b" key.
+  \def CUSTOM_LORA_DATA
+    With the definition of CUSTOM_LORA_DATA the device will send the data over LoRa in a custom format instead of the cayenne format. 
+  \def PRINT_PICTURE
+    ... no developt
+    In this mode the device
+  \def TEST_BUTTON
+    ... not testet
+  \def SEND_PICTURES
+    ... not developt
+  \def SERIAL_BEGIN 
+    If SERIAL_BEGIN is defined the Serial begin in the device setup is activated.
+
+*/
+
+#if DOXYGEN
+#ifndef DEBUG
+#define DEBUG 
+#endif
+#ifndef DEEPSLEEP
+#define DEEPSLEEP
+#endif
+#ifndef NO_EMERGENCY
+#define NO_EMERGENCY
+#endif
+#ifndef SAMPLE_MODE
+#define SAMPLE_MODE
+#endif
+#ifndef CUSTOM_LORA_DATA 
+#define CUSTOM_LORA_DATA 
+#endif
+#ifndef PRINT_PICTURE 
+#define PRINT_PICTURE 
+#endif
+#ifndef TEST_BUTTON
+#define TEST_BUTTON 
+#endif
+#ifndef SEND_PICTURES
+#define SEND_PICTURES
+#endif
+#ifndef SERIAL_BEGIN
+#define SERIAL_BEGIN
+#endif 
+#endif
+
+
 
 #ifdef FEATHER32U4
   #define VBATPIN A9 

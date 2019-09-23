@@ -1,3 +1,8 @@
+/*!  \name File usage
+ * In this File the functions for camera functions are stored.
+ */
+
+
 #pragma once
 /***Here are the functions needed for using the camera with ntsc***/
 #include <Arduino.h>
@@ -442,6 +447,7 @@ void take_and_evaluate_Picture(){
       print_whole_Picture(); 
       //printPicture();
       #endif
+      
 
       ACSetupHandler=0; // Changing to default mode 
       cut_picture_to_size(sample0001,6,60,4,78);   
