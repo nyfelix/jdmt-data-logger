@@ -17,20 +17,18 @@ This file is for setting up the embedded device mode and tune the settings. The 
  ***********************************************/
 
 /*************************** *******PRECOMPILE SETTINGS *******************************/
-//#define DEBUG 
+#define DEBUG 
 //#define DEEPSLEEP
 //#define NO_EMERGENCY// programm will not change to emergency state even the camermodul was removed
-//#define SAMPLE_MODE // Print nummerated Picture Samples  by pressing the spacebar
 //#define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
 //#define TEST_BUTTON // Activates the Test button. Not fully developt!
-//#define SEND_PICTURES
 //#define SERIAL_BEGIN // Serial beginn
-#define TEST_AND_SAMPLES
+//#define TEST_AND_SAMPLES
 
 
 #define DEVICE_TYPE 1 //0== ZOLL AED 3, 1== CU_S, 2== ZOLL AED PLUS
 #define DEVICE_NR 3  // Handling the diffrent devices
-#define DATARATE SF7BW125
+#define DATARATE SF12BW125
 #define SENDING_PERIOD 30
 
 

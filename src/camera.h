@@ -11,6 +11,9 @@
 #include <models.h>
 /************** VARIABLES FOR CAMERAMODUL **********/
 /************Camera Modul Pins *****************************/
+/*!  \name Variables
+ * Code from Rudolf Kamber.
+ */
 int PIN_source_MOSFET_camera_power_control=10;// Mosfet for camera modul Power mangement
 int PIN_Camera_attached_check=19; //
 
@@ -49,7 +52,7 @@ volatile int columns = 80; // colums from above
 
 //************************************************************************************ 
 
-
+/** Checks if ther is a camera modul attached.*/
 uint8_t is_there_CameraModul(){
   if(digitalRead(PIN_Camera_attached_check)== LOW){
     return 0;
@@ -57,15 +60,18 @@ uint8_t is_there_CameraModul(){
   return 1;
 }
 
+/** Turns Camera on with the MOSFET.*/
 void CameraON(){
   digitalWrite(PIN_source_MOSFET_camera_power_control, LOW);
   delay(camera_start_up_time);
 }
 
+/** Turns Camera off with the MOSFET.*/
 void CameraOFF(){
   digitalWrite(PIN_source_MOSFET_camera_power_control, HIGH);
 }
 
+/** Let the flash up 3 times. Used after reattaching the camera modul.*/
 void CameraBlink(){
   CameraON();
   delay(1000);
@@ -81,6 +87,7 @@ void CameraBlink(){
   delay(1000);
 }
 
+/** Cuts off the rim of the picture and safes it in the global cut_picture array.*/
 void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int column_start, int column_end){
    AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
   int i=0;
@@ -94,6 +101,8 @@ void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end,int
   AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrupt 
 }
 
+
+/** A debug function that is used in Sample mode.*/
 void print_cut_Picture_array(){
   #ifdef SAMPLE_MODE
   /*
@@ -111,6 +120,8 @@ void print_cut_Picture_array(){
     }
     Serial.print("]"); 
 }
+
+/** A debug function that is currently not used in Sample mode.*/
 void print_whole_Picture(){
     AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
     for (int v = 0; v <(rows); v++) {
@@ -127,7 +138,7 @@ void print_whole_Picture(){
 }
 
 
-
+/** A debug function that is currently not used in Sample mode.*/
 void printPicture(){
    AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt 
     for (int v = 4; v <(rows-2); v++) {
@@ -156,7 +167,9 @@ void printPicture(){
      debugLn("end printing");
 }
 
-
+/** Configurates the Analog Comperator for the sampling pictures. DON'T CHANGE!
+ * Coded by Rudolf Kamber.
+*/
 void AC_Handler_Camera() {
   AC->INTENCLR.bit.COMP0 = 0x1;  //Disable interrupt
   if (frame == 0) {
@@ -327,10 +340,8 @@ void AC_Handler_Camera() {
    AC->INTENSET.bit.COMP0 = 0x1;  // Enable interrup
 }
 
+/** Configurates the ADC to standart settings. After this function gets called, the standart analogRead() function can be used. DON'T CHANGE! */
 void AnalogRead_setup(){
-  //Initialize
-
-  //reset
   AC->CTRLA.bit.ENABLE = 0; //disable comp 
   AC->COMPCTRL[0].bit.ENABLE = 0x00;    // Disable comp
   ADC->CTRLA.bit.SWRST = 0x00; //reset ADC
@@ -348,6 +359,8 @@ void AnalogRead_setup(){
   AC->CTRLA.bit.ENABLE = 1; //enable comp 
   AC->COMPCTRL[0].bit.ENABLE = 0x1;    // Enable Comp   
 }
+
+/** Configurates the ADC to camer settings. After this function gets called, the ADC writes the NTSC values directli in the sample0001 matrix. DON'T CHANGE! */
 void Camera_setup(){
   // Config AC Clock
  // PM->APBCMASK.bit.AC = 1;    // this does not work, don't know why 
@@ -429,7 +442,7 @@ void Camera_setup(){
   /*************************************************************************************************************/
   }
 
-  
+  /** Functions starts camera, takes a picuter, shut down the camera and evaluate the picture. Value get written in LiklihoodDeviceOk.*/
 void take_and_evaluate_Picture(){
   Camera_setup();  
       

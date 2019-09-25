@@ -9,7 +9,6 @@
 #include <Arduino.h>
 #include <camera.h>
 #include <sending_functions.h>
-#include <take_samples_functions.h>
 #include <global_variable.h>
 #include <Debug.h>
 #include <TinyLoRa.h>
@@ -183,16 +182,13 @@ void setup(){
   #endif
   model = new logistic_regression(-0.00000112,coef, 3996, exp(1), pow);
  
-  #ifdef SAMPLE_MODE
-    currState = take_samples;
-  //take_and_evaluate_Picture();
-  #else
-    #ifdef TEST_AND_SAMPLES
-      currState = test_and_samples;
-    #else
-      currState = observing;
-    #endif
-  #endif
+
+#ifdef TEST_AND_SAMPLES
+  currState = test_and_samples;
+#else
+  currState = observing;
+#endif
+
 
   CameraBlink();
 }
