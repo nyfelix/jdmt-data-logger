@@ -89,20 +89,11 @@ This file is for setting up the embedded device mode and tune the settings. The 
 #ifndef NO_EMERGENCY
 #define NO_EMERGENCY
 #endif
-#ifndef SAMPLE_MODE
-#define SAMPLE_MODE
-#endif
-#ifndef CUSTOM_LORA_DATA 
-#define CUSTOM_LORA_DATA 
-#endif
 #ifndef PRINT_PICTURE 
 #define PRINT_PICTURE 
 #endif
 #ifndef TEST_BUTTON
 #define TEST_BUTTON 
-#endif
-#ifndef SEND_PICTURES
-#define SEND_PICTURES
 #endif
 #ifndef SERIAL_BEGIN
 #define SERIAL_BEGIN
