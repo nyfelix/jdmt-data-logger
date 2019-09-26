@@ -207,14 +207,7 @@ void loop()
       #endif
       #ifdef DEEPSLEEP 
         watchdogSleep(Sleepduration_s,&sleepbit);
-        #ifdef DEBUG
-         Serial.begin(9600);
-          //while (! Serial);
-          Serial.print("Serial started");
-        #endif 
       #endif
-
-
       digitalWrite(LED_BUILTIN,HIGH);
       debugLn("end of sleep");
       
@@ -225,7 +218,9 @@ void loop()
       }
       
       take_and_evaluate_Picture();
-
+      if(LikelihoodDeviceOk<threshold_device_ok){ //double check if AED seems in a bad state
+        take_and_evaluate_Picture();
+      }
       
 
      if(is_there_CameraModul()==false){
@@ -235,11 +230,8 @@ void loop()
         break;
         #endif
      }
-      if(pictures_taken_till_last_send>=picturesTillSend){
+      
         currState=sending;
-        pictures_taken_till_last_send=0; //reset picture Counter
-        break;
-      }
       break; 
     }
       
@@ -307,8 +299,8 @@ void loop()
           take_and_evaluate_Picture();
           print_cut_Picture_array();
           Serial.println();
-          Serial.print("LiklihoodDeviceOk");
-          Serial.println(LiklihoodDeviceOk);
+          Serial.print("LikelihoodDeviceOk");
+          Serial.println(LikelihoodDeviceOk);
         }
         else if(Serial.available() > 0) {
           Serial.flush();

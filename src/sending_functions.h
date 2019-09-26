@@ -76,8 +76,8 @@ void  preparePayolad() {
   vbat /= 10;
   mapToPayload(4, vbat);
   debug("Liklihood of Display shows a check: ");
-  debugLn(LiklihoodDeviceOk);
-  mapToPayload(6, LiklihoodDeviceOk);
+  debugLn(LikelihoodDeviceOk);
+  mapToPayload(6, LikelihoodDeviceOk);
   payload[8]= is_there_CameraModul()  + '0'; // conversion from int to char
   debug("is there a Camera Modul: ")
   debugLn(is_there_CameraModul());

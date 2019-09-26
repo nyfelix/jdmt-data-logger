@@ -464,12 +464,9 @@ void take_and_evaluate_Picture(){
 
       ACSetupHandler=0; // Changing to default mode 
       cut_picture_to_size(sample0001,6,60,4,78);   
-      LiklihoodDeviceOk = model->predict(pic); //evaluate the picture in over the logistic_regression model
+      LikelihoodDeviceOk = model->predict(pic); //evaluate the picture in over the logistic_regression model
  
       AnalogRead_setup();
-
-      pictures_taken_till_last_send++;
-      CameraOFF()
-
+      CameraOFF();
       debugLn("cam off");
 }
