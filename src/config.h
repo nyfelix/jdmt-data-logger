@@ -62,11 +62,6 @@ This file is for setting up the embedded device mode and tune the settings. The 
     If DEEPSLEEP is defined, the device will enter deepsleep instead of a dealy. 
   \def NO_EMERGENCY
     Is NO_EMERGENCY is defined, the state machine in jdmt.apb-tiny.ino will not enter emergency state if the cameramodul get disconnected.
-  \def SAMPLE_MODE
-    This Mode is used to take picture for training a model. For operation the device has to be connectet over serial to the computer. With the the "g" Key the device starts
-    "good sample" set. To add additional pictures to the sample use the spacebar. To end it press "e". To start with the "bad samples" picture set, press the "b" key.
-  \def CUSTOM_LORA_DATA
-    With the definition of CUSTOM_LORA_DATA the device will send the data over LoRa in a custom format instead of the cayenne format. 
   \def PRINT_PICTURE
     ... no developt
     In this mode the device
@@ -98,6 +93,15 @@ This file is for setting up the embedded device mode and tune the settings. The 
 #ifndef SERIAL_BEGIN
 #define SERIAL_BEGIN
 #endif 
+#ifndef APPSKEY
+#define APPSKEY
+#endif
+#ifndef NWKSKEY
+#define NWKSKEY
+#endif
+#ifndef DEVADDR
+#define DEVADDR
+#endif  
 #endif
 
 

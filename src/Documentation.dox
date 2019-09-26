@@ -12,7 +12,7 @@
 
 \subsection Configuration Mode configuration
 \subsubsection Configuration_operating Configuration for device in field operation
-      To set up the device for field operation mode the comment out all the #define exept the \ref  DEEPSLEEP and \ref CUSTOM_LORA_DATA.\\
+      To set up the device for field operation mode the comment out all the #define exept the \ref  DEEPSLEEP.\\
    
 \subsubsection Configuration_Sample Configuration sample mode
 
@@ -25,13 +25,10 @@
 
 These are all the possible defines for the device mode: \n
 \ref DEBUG \n
-\ref  DEEPSLEEP \n
+\ref DEEPSLEEP \n
 \ref NO_EMERGENCY \n
-\ref  SAMPLE_MODE \n
-\ref CUSTOM_LORA_DATA \n
 \ref PRINT_PICTURE \n
 \ref TEST_BUTTON \n
-\ref SEND_PICTURES \n
 \ref SERIAL_BEGIN \n
 
 \subsection Device_config Device configuration
@@ -44,9 +41,10 @@ For each device there is a need to set these values:\n
 
 
 \subsection Setup Setup a new device
+First you have to register the new device on TTN to create a new NWKSKEY, APPSKEY and DEVADDR. Than add a new device in config.h you can copy the code from the predefined devices
+and change the three values.
 
- *
- * 
- *
- * etc...
+\subsection NewModel Add a new model
+Add in models.h a new DEVICE_TYPE with the three variables: threshold_device_ok, beta_zero and coef. The values of beta_zero and coef are from the model generator. The value 
+of threshold_device_ok has to be defined.
  */
