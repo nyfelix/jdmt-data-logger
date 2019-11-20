@@ -5,7 +5,6 @@
 #pragma once
 #include <config.h>
 #include <logistic_regression.h>
-#include <image_manipulator.h>
 #include <SI7021.h>
 
 /*! \brief Device number defined in config.h. The value gets send over the LoRa, because its easyier to integrate in the database.  */
