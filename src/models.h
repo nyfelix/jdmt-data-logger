@@ -1,24 +1,5 @@
 #pragma once
 
-/*
-typedef enum DEV_TYPE
-{
-ZOLL_AED_3,
-,
-ZOLL_AED_PLUS,
-} DEV_TYPE;
-*/
-
-/**
- *\var threshold_device_ok
-    If the value of LikelihoodDeviceOk falls below threshold_device_ok another picture will be taken and evaluated befor the information get sent over LoRa
-  \var beta_zero
-    Value from the modelgenarator.
-  \var coef
-    Value from the modelgenarator.
-    
-*/
-
 #if DEVICE_TYPE == 0
 const double threshold_device_ok = 0.9;
 const double beta_zero = -0.00000112;

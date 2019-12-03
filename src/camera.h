@@ -1,18 +1,8 @@
-/*!  \name File usage
- * In this File the functions for camera functions are stored.
- */
-
 #pragma once
-/***Here are the functions needed for using the camera with ntsc***/
 #include <Arduino.h>
 #include <Debug.h>
 #include <global_variable.h>
 #include <models.h>
-/************** VARIABLES FOR CAMERAMODUL **********/
-/************Camera Modul Pins *****************************/
-/*!  \name Variables
- * Code from Rudolf Kamber.
- */
 int PIN_source_MOSFET_camera_power_control = 10; // Mosfet for camera modul Power mangement
 int PIN_Camera_attached_check = 19;              //
 
@@ -27,7 +17,6 @@ double samples = 8;
 byte framestart[8] = {0}; // the frametrigger value is stored here
 int framestarttot = 0;
 int frametreshold = 150; // 150
-// int rows = 60;  // rows from above array
 
 int done = 0;
 int sample0;
@@ -47,8 +36,6 @@ volatile int nopspershift = 2; // 2
 volatile int a;
 volatile int rows = 60;    // rows from above array
 volatile int columns = 80; // colums from above
-
-//************************************************************************************
 
 /** Checks if ther is a camera modul attached.*/
 uint8_t is_there_CameraModul()
@@ -111,11 +98,6 @@ void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end, in
 void print_cut_Picture_array()
 {
 #ifdef SAMPLE_MODE
-/*
-    Serial.print("Sample Nr.: ");
-    Serial.println(picture_counter);
-    picture_counter++;
-    */
 #endif
   Serial.print("[");
   for (int v = 0; v < sizeof(pic); v++)
@@ -163,18 +145,6 @@ void printPicture()
     Serial.println();
   }
   Serial.println();
-  /*Disable Array print
-    Serial.print("const uint8_t sample0001_map[] = {"); 
-    for (int v = 4; v <(rows-2); v++) {
-      for (int u = 6; u < (columns); u++) {
-        Serial.print(sample0001[v][u]);
-        Serial.print(",");
-        delay(1);        // delay in between reads for stability 
-        }
-       }
-       Serial.print("}");  
-     Serial.println();
-     */
 
   AC->INTENSET.bit.COMP0 = 0x1; // Enable interrupt
   debugLn("end printing");
@@ -208,10 +178,6 @@ void AC_Handler_Camera()
   {
     if (skip == 0)
     {
-      //    for (int y = 0; y < 20; y++) {
-      //        __asm__("nop\n\t");
-      //     }
-
       sqrt(100);
 
       switch (nops)
@@ -483,31 +449,27 @@ void Camera_setup()
   AC->INTENSET.bit.COMP0 = 0x1;
   AC->INTFLAG.bit.COMP0 = 1;
   NVIC_EnableIRQ(AC_IRQn);
-
-  /*************************************************************************************************************/
 }
 
-/** Functions starts camera, takes a picuter, shut down the camera and evaluate the picture. Value get written in LiklihoodDeviceOk.*/
 void take_and_evaluate_Picture()
 {
   Camera_setup();
 
   debugLn("Changing setup Handler");
-  ACSetupHandler = 1; // Changing to Cam mode
+  ACSetupHandler = 1;
 
-  memset(sample0001, 0, sizeof(sample0001)); // fill the array with 0 so in case the camera is broken it will be recognized
+  memset(sample0001, 0, sizeof(sample0001));
 
-  CameraON(); // start up camera
+  CameraON();
   debugLn("cam on");
 
 #ifdef PRINT_PICTURE
-  // print_whole_Picture();
   printPicture();
 #endif
 
-  ACSetupHandler = 0; // Changing to default mode
+  ACSetupHandler = 0;
   cut_picture_to_size(sample0001, 6, 60, 4, 78);
-  LikelihoodDeviceOk = model->predict(pic); //evaluate the picture in over the logistic_regression model
+  LikelihoodDeviceOk = model->predict(pic);
 
   AnalogRead_setup();
   CameraOFF();

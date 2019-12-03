@@ -1,9 +1,3 @@
-/**@file jdmt-apb-tiny.ino */
-
-/*!  \name File usage
- * This is the main arduino file with the statemachine.
- * The pin A7/11 is reserved for checking the battery voltage.
- */
 #pragma once
 
 #include <Arduino.h>
@@ -20,40 +14,22 @@
 #include <avr/pgmspace.h>
 #include "logistic_regression.h"
 #include <CayenneLPP.h>
-#include <math.h> // for pow
+#include <math.h>
 
-/*!  \name Local variables
- */
-
-//********************************** PIN**********/
-//Pins for Cameramodul defined in camera.h
-//int PIN_source_MOSFET_camera_power_control=10;// Transistor for camera modul Power mangement
-//int PIN_Camera_attached_check=19; //
-/*!  \brief This is the number of the IDE of the feather M0 for the test button.*/
-int PIN_test_button = 18;
-/*!  \brief This PIN is used by the camera.h as comperator pins for the ADC. DON'T CHANGE. Changes affects the assembler code.*/
+int nof_ide_feather_test_btn = 18;
 int PIN_analog_comp_1 = 22;
-/*!  \brief This PIN is used by the camera.h as comperator pins for the ADC. DON'T CHANGE. Changes affects the assembler code.*/
 int PIN_analog_comp_2 = 13;
 
-//***********************
-
-/*!  \brief States of the Statemachine.
-      \enum States
-      \var States::observing blublihbl
-      */
 enum States
 {
-  observing,       /*!< Sleeping, taking a picture and evaluate the picture. */
-  sending,         /*!< Sending the Data over lora. */
-  testing,         /*!< State gets called after the testbutton gets pressed. Work in progress.... */
-  emergency,       /*!< State gets called, if the camera modul gets dettached. */
-  test_and_samples /*!< State is only used TEST_AND_SAMPLES mode. */
+  observing,
+  sending,
+  testing,
+  emergency,
+  test_and_samples
 };
-/*!  \brief Defining the current state.*/
 States currState = observing;
 
-/**  This function regulates the converter. This function gets called internally switches from normal to camera mode. DON'T CHANGE. Changes affects the behavior of the ADC.*/
 void AC_Handler()
 {
   if (ACSetupHandler == 1)
@@ -62,8 +38,6 @@ void AC_Handler()
   }
   if (ACSetupHandler == 0)
   {
-    //**************default AC_Handler() ******************************************
-
     if (AC->INTFLAG.reg & AC_INTFLAG_COMP0)
     {
 
@@ -77,75 +51,65 @@ void AC_Handler()
   }
 }
 
-/** This function is called by interrupt on dettachment of the cameramodul. */
 void alert()
 {
-  sleepbit = false; // exit the while loop for switch to emergency state
+  sleepbit = false;
 }
 
-/** This function is called by interrupt on PIN_test_button.*/
 void test()
 {
   sleepbit = false;
   testbit = true;
 }
 
-/** This function is used to set the watchdog timer multipel times, so the sleep duration is longer than the max. value of the watchdogtimer.*/
 void watchdogSleep(int time_s, volatile bool *sleepflag)
 {
 
   double sleep_rep = time_s / 30;
   while (*sleepflag == true)
   {
-    Watchdog.sleep(30000); //sleeptime in ms
+    Watchdog.sleep(30000);
     sleepcounter++;
     if (sleepcounter >= sleep_rep)
     {
       *sleepflag = false;
-      sleepcounter = 0; // reset the sleepcounter
+      sleepcounter = 0;
     }
   }
-  *sleepflag = true; // reset sleepbit
+  *sleepflag = true;
 }
 
-/** This function simulates sleep. But the mikrocontroller doesn't enter sleepmode, so the serial communication doesn't break down.*/
 void simulateSleep(int time_s, volatile bool *sleepflag)
 {
 
   double sleep_rep = time_s / 30;
   while (*sleepflag == true)
   {
-    delay(30000); //sleeptime in ms
+    delay(30000);
     sleepcounter++;
     if (sleepcounter >= sleep_rep)
     {
       *sleepflag = false;
-      sleepcounter = 0; // reset the sleepcounter
+      sleepcounter = 0;
     }
   }
-  *sleepflag = true; // reset sleepbit
+  *sleepflag = true;
 }
-
-/** Initial setup of the mikrocontroller.*/
 
 void setup()
 {
 
-  /*****************************PINS FOR CAMERA SIGNAL********************************************************/
-
-  // Analog Comp Output Pin
   pinMode(PIN_analog_comp_1, OUTPUT);
   pinMode(PIN_analog_comp_2, OUTPUT);
-  //********************** Digital Pin Output
 
-  pinMode(PIN_source_MOSFET_camera_power_control, OUTPUT); // initializing pins for camera power control
-  pinMode(LED_BUILTIN, OUTPUT);                            // Initialize pin LED_BUILTIN as an output
+  pinMode(PIN_source_MOSFET_camera_power_control, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
-  pinMode(PIN_Camera_attached_check, INPUT);                                         //
-  attachInterrupt(digitalPinToInterrupt(PIN_Camera_attached_check), alert, FALLING); // Set interrupt pin for falling, calls to alert for switching to emergency State
+  pinMode(PIN_Camera_attached_check, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PIN_Camera_attached_check), alert, FALLING);
 #ifdef TEST_BUTTON
-  pinMode(PIN_test_button, INPUT); //defining Interrupt pin
-  attachInterrupt(digitalPinToInterrupt(PIN_test_button), test, HIGH);
+  pinMode(nof_ide_feather_test_btn, INPUT);
+  attachInterrupt(digitalPinToInterrupt(nof_ide_feather_test_btn), test, HIGH);
 #endif
 
 #if defined(SERIAL_BEGIN) || defined(SAMPLE_MODE) || defined(TEST_AND_SAMPLES)
@@ -155,17 +119,12 @@ void setup()
   debugLn("Serial started");
 #endif
 
-  CameraOFF(); // make sure the Camera is off
-// Initialize LoRa
+  CameraOFF();
+
 #ifndef SAMPLE_MODE
   debug("Starting LoRa...");
-  // define multi-channel sending
   LoRa_jdmt_data_logger.setChannel(MULTI);
-
-  // set datarate
   LoRa_jdmt_data_logger.setDatarate(DATARATE);
-
-  //Disabled because LoRa-Modul is broken
   if (!LoRa_jdmt_data_logger.begin())
   {
     debugLn("Failed: Check your radio");
@@ -194,14 +153,13 @@ void setup()
   CameraBlink();
 }
 
-/** Statemachine*/
 void loop()
 {
   switch (currState)
   {
 
   case observing:
-  { // u gathering and processing information with sleep pauses
+  {
     debugLn("observing...");
 
     digitalWrite(LED_BUILTIN, LOW);
@@ -223,7 +181,7 @@ void loop()
 
     take_and_evaluate_Picture();
     if (LikelihoodDeviceOk < threshold_device_ok)
-    { //double check if AED seems in a bad state
+    {
       take_and_evaluate_Picture();
     }
 
@@ -241,7 +199,7 @@ void loop()
   }
 
   case sending:
-  { // periodical sending information over LoRa
+  {
     debugLn("sending...");
 
     delay(2000);
@@ -305,7 +263,7 @@ void loop()
     {
       int x = Serial.read();
       if (x == 32)
-      { // 103 in ASCII is  Space
+      {
         take_and_evaluate_Picture();
         print_cut_Picture_array();
         Serial.println();
