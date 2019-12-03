@@ -77,7 +77,6 @@ void CameraBlink()
   delay(1000);
 }
 
-/** Cuts off the rim of the picture and safes it in the global cut_picture array.*/
 void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end, int column_start, int column_end)
 {
   AC->INTENCLR.bit.COMP0 = 0x1; //Disable interrupt
