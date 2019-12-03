@@ -5,8 +5,6 @@
 
 float LikelihoodDeviceOk = 0;
 volatile int ACSetupHandler = 0;
-typedef unsigned char cut_picture[3996];
-cut_picture pic;
 
 int sleepcounter = 0;
 bool cameraModulattached;

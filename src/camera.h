@@ -10,7 +10,8 @@ int camera_start_up_time = 1000; //time to give the camera to start up
 
 typedef uint8_t picture[60][80];
 picture sample0001;
-
+typedef unsigned char cut_picture[3996];
+cut_picture pic;
 int readdata = 0;
 int counter = 0;
 double samples = 8;
