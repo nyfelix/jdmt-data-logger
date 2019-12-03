@@ -21,7 +21,7 @@ This file is for setting up the embedded device mode and tune the settings. The 
 //#define SERIAL_BEGIN // Serial beginn
 //#define TEST_AND_SAMPLES
 
-#define DEVICE_TYPE 1 //0== ZOLL AED 3, 1== CU_S, 2== ZOLL AED PLUS
+#define DEVICE_TYPE 3 //0== ZOLL AED 3, 1== CU_S, 2== ZOLL AED PLUS, 3== cu st1 auto
 #define DEVICE_NR 2   // Handling the diffrent devices
 #define DATARATE SF12BW125
 #define SENDING_PERIOD 30 // Seconds
