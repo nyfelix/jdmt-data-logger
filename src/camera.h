@@ -3,10 +3,10 @@
 #include <Debug.h>
 #include <global_variable.h>
 #include <models.h>
+
 int PIN_source_MOSFET_camera_power_control = 10; // Mosfet for camera modul Power mangement
 int PIN_Camera_attached_check = 19;              //
-
-int camera_start_up_time = 1000; //time to give the camera to start up
+int camera_start_up_time = 1000;                 //time to give the camera to start up
 
 typedef uint8_t picture[60][80];
 picture sample0001;
