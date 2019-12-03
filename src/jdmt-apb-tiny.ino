@@ -164,10 +164,10 @@ void loop()
 
     digitalWrite(LED_BUILTIN, LOW);
 #ifndef DEEPSLEEP
-    simulateSleep(Sleepduration_s, &sleepbit);
+    simulateSleep(SENDING_PERIOD, &sleepbit);
 #endif
 #ifdef DEEPSLEEP
-    watchdogSleep(Sleepduration_s, &sleepbit);
+    watchdogSleep(SENDING_PERIOD, &sleepbit);
 #endif
     digitalWrite(LED_BUILTIN, HIGH);
     debugLn("end of sleep");

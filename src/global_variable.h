@@ -3,8 +3,6 @@
 #include <logistic_regression.h>
 #include <SI7021.h>
 
-int Sleepduration_s = SENDING_PERIOD; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
-
 float LikelihoodDeviceOk = 0;
 volatile int ACSetupHandler = 0;
 typedef unsigned char cut_picture[3996];
