@@ -501,8 +501,8 @@ void take_and_evaluate_Picture()
   debugLn("cam on");
 
 #ifdef PRINT_PICTURE
-  print_whole_Picture();
-//printPicture();
+  // print_whole_Picture();
+  printPicture();
 #endif
 
   ACSetupHandler = 0; // Changing to default mode
