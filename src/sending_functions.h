@@ -72,5 +72,5 @@ void preparePayolad()
   debugLn(Device_Position_longitude);
   mapToPayload(11, Device_Position_longitude / 180);
   debugLn();
-  payload[13] = DeviceNumber;
+  payload[13] = DEVICE_NR;
 }

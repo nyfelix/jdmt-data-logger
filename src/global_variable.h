@@ -3,7 +3,6 @@
 #include <logistic_regression.h>
 #include <SI7021.h>
 
-int DeviceNumber = DEVICE_NR;
 int Sleepduration_s = SENDING_PERIOD; // duration of watchdochg sleeptime in s. Minimal sleepduration is 30s
 
 float LikelihoodDeviceOk = 0;
