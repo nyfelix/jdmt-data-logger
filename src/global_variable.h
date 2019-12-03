@@ -6,11 +6,5 @@
 float LikelihoodDeviceOk = 0;
 volatile int ACSetupHandler = 0;
 
-int sleepcounter = 0;
-bool cameraModulattached;
-
-volatile bool sleepbit = false; //first loop without sleeping
-volatile bool testbit = false;  //normal mode is no test
-
 logistic_regression *model;
 SI7021 *envSensor;

@@ -19,6 +19,9 @@
 int nof_ide_feather_test_btn = 18;
 int PIN_analog_comp_1 = 22;
 int PIN_analog_comp_2 = 13;
+int sleepcounter = 0;
+volatile bool sleepbit = false; //first loop without sleeping
+volatile bool testbit = false;  //normal mode is no test
 
 enum States
 {
