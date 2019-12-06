@@ -1,7 +1,6 @@
 #pragma once
 #include <Arduino.h>
 #include <Debug.h>
-#include <global_variable.h>
 #include <models.h>
 #include <logistic_regression.h>
 

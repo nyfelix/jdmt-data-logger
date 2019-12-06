@@ -7,7 +7,6 @@
 #include <camera.h>
 #include <SI7021.h>
 #include <lmic_util.h>
-#include <global_variable.h>
 
 uint8_t NwkSkey[16] = NWKSKEY;
 uint8_t AppSkey[16] = APPSKEY;

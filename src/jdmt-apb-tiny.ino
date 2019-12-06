@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include <camera.h>
 #include <sending_functions.h>
-#include <global_variable.h>
 #include <Debug.h>
 #include <TinyLoRa.h>
 #include <SPI.h>
