@@ -35,7 +35,7 @@ void print_payload()
   Serial.println();
 }
 
-void preparePayolad(SI7021 &envSensor)
+void preparePayolad(SI7021 &envSensor, const float deviceOk)
 {
   float temperature = envSensor.getCelsiusHundredths() / 10000;
   mapToPayload(0, temperature);
@@ -43,7 +43,7 @@ void preparePayolad(SI7021 &envSensor)
   mapToPayload(2, rHumidity);
   float vbat = analogRead(VBATPIN) * 0.00064453125;
   mapToPayload(4, vbat);
-  mapToPayload(6, LikelihoodDeviceOk);
+  mapToPayload(6, deviceOk);
   payload[8] = is_there_CameraModul() + '0';
   mapToPayload(9, Device_Position_latitude / 90);
   mapToPayload(11, Device_Position_longitude / 180);

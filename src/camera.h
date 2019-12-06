@@ -3,6 +3,7 @@
 #include <Debug.h>
 #include <global_variable.h>
 #include <models.h>
+#include <logistic_regression.h>
 
 int PIN_source_MOSFET_camera_power_control = 10; // Mosfet for camera modul Power mangement
 int PIN_Camera_attached_check = 19;              //
@@ -451,12 +452,12 @@ void Camera_setup()
   NVIC_EnableIRQ(AC_IRQn);
 }
 
-void take_and_evaluate_Picture()
+float take_and_evaluate_Picture(logistic_regression &model, volatile int &acHandler)
 {
   Camera_setup();
 
   debugLn("Changing setup Handler");
-  ACSetupHandler = 1;
+  acHandler = 1;
 
   memset(sample0001, 0, sizeof(sample0001));
 
@@ -467,11 +468,12 @@ void take_and_evaluate_Picture()
   printPicture();
 #endif
 
-  ACSetupHandler = 0;
+  acHandler = 0;
   cut_picture_to_size(sample0001, 6, 60, 4, 78);
-  LikelihoodDeviceOk = model->predict(pic);
+  const auto deviceOk = model.predict(pic);
 
   AnalogRead_setup();
   CameraOFF();
   debugLn("cam off");
+  return deviceOk;
 }

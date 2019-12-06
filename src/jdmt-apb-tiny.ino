@@ -23,6 +23,8 @@ int sleepcounter = 0;
 volatile bool sleepbit = false; //first loop without sleeping
 volatile bool testbit = false;  //normal mode is no test
 SI7021 envSensor;
+logistic_regression model{-0.00000112, coef, 3996, exp(1), pow};
+volatile int acHandler{};
 
 enum States
 {
@@ -36,11 +38,11 @@ States currState = observing;
 
 void AC_Handler()
 {
-  if (ACSetupHandler == 1)
+  if (acHandler == 1)
   {
     AC_Handler_Camera();
   }
-  if (ACSetupHandler == 0)
+  if (acHandler == 0)
   {
     if (AC->INTFLAG.reg & AC_INTFLAG_COMP0)
     {
@@ -99,6 +101,7 @@ void simulateSleep(int time_s, volatile bool *sleepflag)
   }
   *sleepflag = true;
 }
+float deviceOk{};
 
 void setup()
 {
@@ -145,7 +148,6 @@ void setup()
   envSensor.begin();
   debugLn("Sensor initialized");
 #endif
-  model = new logistic_regression(-0.00000112, coef, 3996, exp(1), pow);
 
 #ifdef TEST_AND_SAMPLES
   currState = test_and_samples;
@@ -182,10 +184,10 @@ void loop()
       break;
     }
 
-    take_and_evaluate_Picture();
-    if (LikelihoodDeviceOk < threshold_device_ok)
+    deviceOk = take_and_evaluate_Picture(model, acHandler);
+    if (deviceOk < threshold_device_ok)
     {
-      take_and_evaluate_Picture();
+      deviceOk = take_and_evaluate_Picture(model, acHandler);
     }
 
     if (is_there_CameraModul() == false)
@@ -208,7 +210,7 @@ void loop()
     delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
     debugLn("Sending LoRa Data...");
-    preparePayolad(envSensor);
+    preparePayolad(envSensor, deviceOk);
 #ifdef DEBUG
     print_payload();
 #endif
@@ -241,7 +243,7 @@ void loop()
     delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
     debugLn("Sending LoRa Data...");
-    preparePayolad(envSensor);
+    preparePayolad(envSensor, deviceOk);
     LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
     debug("Frame Counter: ");
     debugLn(LoRa_jdmt_data_logger.frameCounter);
@@ -267,11 +269,11 @@ void loop()
       int x = Serial.read();
       if (x == 32)
       {
-        take_and_evaluate_Picture();
+        take_and_evaluate_Picture(model, acHandler);
         print_cut_Picture_array();
         Serial.println();
-        Serial.print("LikelihoodDeviceOk");
-        Serial.println(LikelihoodDeviceOk);
+        Serial.print("deviceOk");
+        Serial.println(deviceOk);
       }
       else if (Serial.available() > 0)
       {
