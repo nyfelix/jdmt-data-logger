@@ -35,11 +35,11 @@ void print_payload()
   Serial.println();
 }
 
-void preparePayolad()
+void preparePayolad(SI7021 &envSensor)
 {
-  float temperature = envSensor->getCelsiusHundredths() / 10000;
+  float temperature = envSensor.getCelsiusHundredths() / 10000;
   mapToPayload(0, temperature);
-  float rHumidity = envSensor->getHumidityPercent() / 100;
+  float rHumidity = envSensor.getHumidityPercent() / 100;
   mapToPayload(2, rHumidity);
   float vbat = analogRead(VBATPIN) * 0.00064453125;
   mapToPayload(4, vbat);

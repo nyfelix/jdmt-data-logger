@@ -22,6 +22,7 @@ int PIN_analog_comp_2 = 13;
 int sleepcounter = 0;
 volatile bool sleepbit = false; //first loop without sleeping
 volatile bool testbit = false;  //normal mode is no test
+SI7021 envSensor;
 
 enum States
 {
@@ -141,8 +142,7 @@ void setup()
   }
   debugLn(" OK");
 
-  envSensor = new SI7021();
-  envSensor->begin();
+  envSensor.begin();
   debugLn("Sensor initialized");
 #endif
   model = new logistic_regression(-0.00000112, coef, 3996, exp(1), pow);
@@ -208,7 +208,7 @@ void loop()
     delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
     debugLn("Sending LoRa Data...");
-    preparePayolad();
+    preparePayolad(envSensor);
 #ifdef DEBUG
     print_payload();
 #endif
@@ -241,7 +241,7 @@ void loop()
     delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
     debugLn("Sending LoRa Data...");
-    preparePayolad();
+    preparePayolad(envSensor);
     LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
     debug("Frame Counter: ");
     debugLn(LoRa_jdmt_data_logger.frameCounter);
