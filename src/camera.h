@@ -354,7 +354,7 @@ void AnalogRead_setup()
 }
 
 /** Configurates the ADC to camer settings. After this function gets called, the ADC writes the NTSC values directli in the sample0001 matrix. DON'T CHANGE! */
-void Camera_setup()
+void setupCamera()
 {
   // Config AC Clock
   // PM->APBCMASK.bit.AC = 1;    // this does not work, don't know why
@@ -453,15 +453,13 @@ void Camera_setup()
 
 float take_and_evaluate_Picture(logistic_regression &model, volatile int &acHandler)
 {
-  Camera_setup();
+  setupCamera();
 
-  debugLn("Changing setup Handler");
   acHandler = 1;
 
   memset(sample0001, 0, sizeof(sample0001));
 
   CameraON();
-  debugLn("cam on");
 
 #ifdef PRINT_PICTURE
   printPicture();
