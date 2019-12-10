@@ -176,7 +176,7 @@ void loop()
     digitalWrite(LED_BUILTIN, HIGH);
     debugLn("end of sleep");
 
-    if (testbit == true)
+    if (testbit)
     {
       currState = testing;
       testbit = false;
@@ -189,7 +189,7 @@ void loop()
       deviceOk = take_and_evaluate_Picture(model, acHandler);
     }
 
-    if (is_there_CameraModul() == false)
+    if (!is_there_CameraModul())
     {
       debugLn("there is no camera");
 #ifndef NO_EMERGENCY
