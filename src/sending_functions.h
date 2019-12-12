@@ -23,17 +23,6 @@ void mapToPayload(uint8_t index_payload, float value)
   payload[index_payload + 1] = high;
 }
 
-void print_payload()
-{
-  debug("Payload: ");
-  for (unsigned int i = 0; i < sizeof(payload); i++)
-  {
-    Serial.print(payload[i], HEX);
-    Serial.print(" ");
-  }
-  Serial.println();
-}
-
 void preparePayolad(SI7021 &envSensor, const float deviceOk)
 {
   float temperature = envSensor.getCelsiusHundredths() / 10000;

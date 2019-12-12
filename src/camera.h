@@ -95,59 +95,19 @@ void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end, in
 }
 
 /** A debug function that is used in Sample mode.*/
-void print_cut_Picture_array()
+void printPicture()
 {
-#ifdef SAMPLE_MODE
-#endif
   Serial.print("[");
+
   for (int v = 0; v < sizeof(pic); v++)
   {
     Serial.print(pic[v]);
     if (v != sizeof(pic) - 1)
     {
-      Serial.print(", ");
+      Serial.print(",");
     }
   }
-  Serial.print("]");
-}
-
-/** A debug function that is currently not used in Sample mode.*/
-void print_whole_Picture()
-{
-  AC->INTENCLR.bit.COMP0 = 0x1; //Disable interrupt
-  for (int v = 0; v < (rows); v++)
-  {
-    for (int u = 0; u < (columns); u++)
-    {
-      Serial.print(sample0001[v][u]);
-      Serial.print("\t");
-      delay(1); // delay in between reads for stability
-    }
-    Serial.println();
-  }
-  Serial.println();
-  AC->INTENSET.bit.COMP0 = 0x1; // Enable interrupt
-  debugLn("end printing");
-}
-
-/** A debug function that is currently not used in Sample mode.*/
-void printPicture()
-{
-  AC->INTENCLR.bit.COMP0 = 0x1; //Disable interrupt
-  for (int v = 4; v < (rows - 2); v++)
-  {
-    for (int u = 6; u < (columns); u++)
-    {
-      Serial.print(sample0001[v][u]);
-      Serial.print("\t");
-      delay(1); // delay in between reads for stability
-    }
-    Serial.println();
-  }
-  Serial.println();
-
-  AC->INTENSET.bit.COMP0 = 0x1; // Enable interrupt
-  debugLn("end printing");
+  Serial.print("]\n");
 }
 
 /** Configurates the Analog Comperator for the sampling pictures. DON'T CHANGE!
@@ -471,6 +431,5 @@ float take_and_evaluate_Picture(logistic_regression &model, volatile int &acHand
 
   AnalogRead_setup();
   CameraOFF();
-  debugLn("cam off");
   return deviceOk;
 }

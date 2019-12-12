@@ -122,18 +122,15 @@ void setup()
   Serial.begin(9600);
   while (!Serial)
     ;
-  debugLn("Serial started");
 #endif
 
   CameraOFF();
 
 #ifndef SAMPLE_MODE
-  debug("Starting LoRa...");
   LoRa_jdmt_data_logger.setChannel(MULTI);
   LoRa_jdmt_data_logger.setDatarate(DATARATE);
   if (!LoRa_jdmt_data_logger.begin())
   {
-    debugLn("Failed: Check your radio");
     while (true)
     {
       digitalWrite(LED_BUILTIN, HIGH);
@@ -142,10 +139,7 @@ void setup()
       delay(500);
     }
   }
-  debugLn(" OK");
-
   envSensor.begin();
-  debugLn("Sensor initialized");
 #endif
 
 #ifdef TEST_AND_SAMPLES
@@ -164,8 +158,6 @@ void loop()
 
   case observing:
   {
-    debugLn("observing...");
-
     digitalWrite(LED_BUILTIN, LOW);
 #ifndef DEEPSLEEP
     simulateSleep(SENDING_PERIOD, &sleepbit);
@@ -174,8 +166,6 @@ void loop()
     watchdogSleep(SENDING_PERIOD, &sleepbit);
 #endif
     digitalWrite(LED_BUILTIN, HIGH);
-    debugLn("end of sleep");
-
     if (testbit)
     {
       currState = testing;
@@ -184,14 +174,9 @@ void loop()
     }
 
     deviceOk = take_and_evaluate_Picture(model, acHandler);
-    if (deviceOk < threshold_device_ok)
-    {
-      deviceOk = take_and_evaluate_Picture(model, acHandler);
-    }
 
     if (!is_there_CameraModul())
     {
-      debugLn("there is no camera");
 #ifndef NO_EMERGENCY
       currState = emergency;
       break;
@@ -204,18 +189,9 @@ void loop()
 
   case sending:
   {
-    debugLn("sending...");
-
-    delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
-    debugLn("Sending LoRa Data...");
     preparePayolad(envSensor, deviceOk);
-#ifdef DEBUG
-    print_payload();
-#endif
     LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
-    debug("Frame Counter: ");
-    debugLn(LoRa_jdmt_data_logger.frameCounter);
     LoRa_jdmt_data_logger.frameCounter++;
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
@@ -225,7 +201,6 @@ void loop()
 
   case testing:
   {
-    debugLn("testing...");
     delay(2000);
     CameraON();
     delay(2000);
@@ -237,19 +212,13 @@ void loop()
 
   case emergency:
   {
-    debugLn("emergency...");
-
     delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
-    debugLn("Sending LoRa Data...");
     preparePayolad(envSensor, deviceOk);
     LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
-    debug("Frame Counter: ");
-    debugLn(LoRa_jdmt_data_logger.frameCounter);
     LoRa_jdmt_data_logger.frameCounter++;
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
-    debugLn("delaying...");
     if (is_there_CameraModul() == true)
     {
       currState = observing;
@@ -259,26 +228,6 @@ void loop()
 
     delay(10000);
     break;
-  }
-
-  case test_and_samples:
-  {
-    if (Serial.available() > 0)
-    {
-      int x = Serial.read();
-      if (x == 32)
-      {
-        take_and_evaluate_Picture(model, acHandler);
-        print_cut_Picture_array();
-        Serial.println();
-        Serial.print("deviceOk");
-        Serial.println(deviceOk);
-      }
-      else if (Serial.available() > 0)
-      {
-        Serial.flush();
-      }
-    }
   }
   }
 }

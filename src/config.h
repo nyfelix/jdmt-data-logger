@@ -1,35 +1,17 @@
 #pragma once
-//#define DEBUG
-#define DEEPSLEEP
+#define DEBUG
+//#define DEEPSLEEP
 //#define NO_EMERGENCY// programm will not change to emergency state even the camermodul was removed
-//#define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
+#define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
 //#define TEST_BUTTON // Activates the Test button. Not fully developt!
-//#define SERIAL_BEGIN // Serial beginn
+#define SERIAL_BEGIN // Serial beginn
 //#define TEST_AND_SAMPLES
 
 #define DEVICE_TYPE 1 //0== ZOLL AED 3, 1== CU_S, 2== ZOLL AED PLUS, 3== cu st1 auto
 #define DEVICE_NR 2   // Handling the diffrent devices
 #define DATARATE SF12BW125
-#define SENDING_PERIOD 1800 // Seconds
+#define SENDING_PERIOD 30 // Seconds
 
-#ifndef DEBUG
-#define DEBUG
-#endif
-#ifndef DEEPSLEEP
-#define DEEPSLEEP
-#endif
-#ifndef NO_EMERGENCY
-#define NO_EMERGENCY
-#endif
-#ifndef PRINT_PICTURE
-#define PRINT_PICTURE
-#endif
-#ifndef TEST_BUTTON
-#define TEST_BUTTON
-#endif
-#ifndef SERIAL_BEGIN
-#define SERIAL_BEGIN
-#endif
 #ifndef APPSKEY
 #define APPSKEY
 #endif
