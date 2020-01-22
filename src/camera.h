@@ -138,131 +138,14 @@ void AC_Handler_Camera()
   {
     if (skip == 0)
     {
-      sqrt(100);
-
-      switch (nops)
-      {
-      case 0:
-        break; //exit loop
-      case 1:
-        __asm__("nop\n"); //waste one cycle
+      for (int n = 0; n < ((2 * nops) + 3); n++)
+      { // 1 nop = 0.1us, 11nops = 1.13us additional shift each run  + 5us offset
         __asm__("nop\n");
-        break;
-
-      case 2:
         __asm__("nop\n");
         __asm__("nop\n");
         __asm__("nop\n");
         __asm__("nop\n");
-        break;
-
-      case 3:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        break;
-
-      case 4:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        break;
-
-      case 5:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        break;
-
-      case 6:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        break;
-
-      case 7:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-
-        break;
-      case 8:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-
-        break;
-      case 9:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-
-        break;
       }
-
       for (int i = 0; i < (samples); i++)
       { // take 8 samples, equally spaced appr 5.67 us (as fast as it can go)
         while (!(ADC->INTFLAG.bit.RESRDY))
