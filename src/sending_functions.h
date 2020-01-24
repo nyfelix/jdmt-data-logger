@@ -12,7 +12,6 @@ uint8_t NwkSkey[16] = NWKSKEY;
 uint8_t AppSkey[16] = APPSKEY;
 uint8_t DevAddr[4] = DEVADDR;
 unsigned char payload[14];
-TinyLoRa LoRa_jdmt_data_logger = TinyLoRa(3, 8);
 
 void mapToPayload(uint8_t index_payload, float value)
 {

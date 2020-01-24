@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <camera.h>
-#include <sending_functions.h>
+#include "sending_functions.h"
 #include <Debug.h>
 #include <TinyLoRa.h>
 #include <SPI.h>
@@ -24,6 +24,7 @@ volatile bool testbit = false;  //normal mode is no test
 SI7021 envSensor;
 logistic_regression model{-0.00000112, coef, 3996, exp(1), pow};
 volatile int acHandler{};
+TinyLoRa LoRa_jdmt_data_logger = TinyLoRa(3, 8);
 
 enum States
 {
@@ -118,12 +119,11 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(nof_ide_feather_test_btn), test, HIGH);
 #endif
 
-#if defined(SERIAL_BEGIN) || defined(SAMPLE_MODE) || defined(TEST_AND_SAMPLES)
   Serial.begin(9600);
   while (!Serial)
     ;
-#endif
 
+  debugLn("Serial started");
   CameraOFF();
 
 #ifndef SAMPLE_MODE
@@ -131,6 +131,7 @@ void setup()
   LoRa_jdmt_data_logger.setDatarate(DATARATE);
   if (!LoRa_jdmt_data_logger.begin())
   {
+    debugLn("Starting LoRa...Failed: Check your radio");
     while (true)
     {
       digitalWrite(LED_BUILTIN, HIGH);
