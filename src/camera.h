@@ -78,27 +78,23 @@ void CameraBlink()
   delay(1000);
 }
 
-void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end, int column_start, int column_end)
+void cut_picture_to_size(picture &picture_to_cut)
 {
-  AC->INTENCLR.bit.COMP0 = 0x1; //Disable interrupt
   int i = 0;
-
-  for (int column_index = column_start; column_index < column_end; column_index++)
+  for (int v = 4; v < (rows - 2); v++)
   {
-    for (int row_index = row_start; row_index < row_end; row_index++)
+    for (int u = 6; u < (columns); u++)
     {
-      pic[i] = picture_to_cut[row_index][column_index];
+      pic[i] = picture_to_cut[v][u];
       i++;
+      delay(1); // delay in between reads for stability
     }
   }
-  AC->INTENSET.bit.COMP0 = 0x1; // Enable interrupt
 }
 
-/** A debug function that is used in Sample mode.*/
 void printPicture()
 {
   Serial.print("[");
-
   for (int v = 0; v < sizeof(pic); v++)
   {
     Serial.print(pic[v]);
@@ -107,7 +103,7 @@ void printPicture()
       Serial.print(",");
     }
   }
-  Serial.print("]\n");
+  Serial.println("],");
 }
 
 /** Configurates the Analog Comperator for the sampling pictures. DON'T CHANGE!
@@ -303,13 +299,13 @@ float take_and_evaluate_Picture(logistic_regression &model, volatile int &acHand
   memset(sample0001, 0, sizeof(sample0001));
 
   CameraON();
-
+  cut_picture_to_size(sample0001);
 #ifdef PRINT_PICTURE
   printPicture();
 #endif
 
   acHandler = 0;
-  cut_picture_to_size(sample0001, 6, 60, 4, 78);
+
   const auto deviceOk = model.predict(pic);
 
   AnalogRead_setup();
