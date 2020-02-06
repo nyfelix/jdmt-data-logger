@@ -159,6 +159,7 @@ void loop()
 
   case observing:
   {
+    debugLn("observing");
     digitalWrite(LED_BUILTIN, LOW);
 #ifndef DEEPSLEEP
     simulateSleep(SENDING_PERIOD, &sleepbit);
@@ -190,10 +191,11 @@ void loop()
 
   case sending:
   {
+    debugLn("sending");
     digitalWrite(LED_BUILTIN, HIGH);
-    preparePayolad(envSensor, deviceOk);
-    LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
-    LoRa_jdmt_data_logger.frameCounter++;
+    // preparePayolad(envSensor, deviceOk);
+    //LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
+    //LoRa_jdmt_data_logger.frameCounter++;
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
     currState = observing;
@@ -202,6 +204,7 @@ void loop()
 
   case testing:
   {
+    debugLn("testing");
     delay(2000);
     CameraON();
     delay(2000);
@@ -213,11 +216,12 @@ void loop()
 
   case emergency:
   {
+    debugLn("emergency");
     delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
     preparePayolad(envSensor, deviceOk);
-    LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
-    LoRa_jdmt_data_logger.frameCounter++;
+    //LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
+    //LoRa_jdmt_data_logger.frameCounter++;
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
     if (is_there_CameraModul() == true)
@@ -229,6 +233,10 @@ void loop()
 
     delay(10000);
     break;
+  }
+  default:
+  {
+    debugLn("default");
   }
   }
 }
