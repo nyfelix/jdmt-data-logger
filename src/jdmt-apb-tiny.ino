@@ -1,5 +1,5 @@
 #pragma once
-
+#include <config.h>
 #include <Arduino.h>
 #include <camera.h>
 #include "sending_functions.h"
@@ -9,7 +9,6 @@
 #include <lmic_util.h>
 #include <SI7021.h>
 #include <Adafruit_SleepyDog.h>
-#include <config.h>
 #include <avr/pgmspace.h>
 #include "logistic_regression.h"
 #include <CayenneLPP.h>
@@ -193,9 +192,9 @@ void loop()
   {
     debugLn("sending");
     digitalWrite(LED_BUILTIN, HIGH);
-    // preparePayolad(envSensor, deviceOk);
-    //LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
-    //LoRa_jdmt_data_logger.frameCounter++;
+    preparePayolad(envSensor, deviceOk);
+    LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
+    LoRa_jdmt_data_logger.frameCounter++;
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
     currState = observing;
@@ -220,8 +219,8 @@ void loop()
     delay(2000);
     digitalWrite(LED_BUILTIN, HIGH);
     preparePayolad(envSensor, deviceOk);
-    //LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
-    //LoRa_jdmt_data_logger.frameCounter++;
+    LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
+    LoRa_jdmt_data_logger.frameCounter++;
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
     if (is_there_CameraModul() == true)
