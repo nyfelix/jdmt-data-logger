@@ -11,7 +11,6 @@
 #include <Adafruit_SleepyDog.h>
 #include <avr/pgmspace.h>
 #include "logistic_regression.h"
-#include <CayenneLPP.h>
 #include <math.h>
 
 int nof_ide_feather_test_btn = 18;
@@ -21,7 +20,7 @@ int sleepcounter = 0;
 volatile bool sleepbit = false; //first loop without sleeping
 volatile bool testbit = false;  //normal mode is no test
 SI7021 envSensor;
-logistic_regression model{-0.00000112, coef, 3996, exp(1), pow};
+logistic_regression model{beta_zero, coef, 3996, exp(1), pow};
 volatile int acHandler{};
 TinyLoRa LoRa_jdmt_data_logger = TinyLoRa(3, 8);
 
@@ -119,10 +118,7 @@ void setup()
 #endif
 
   Serial.begin(9600);
-  while (!Serial)
-    ;
 
-  debugLn("Serial started");
   CameraOFF();
 
 #ifndef SAMPLE_MODE

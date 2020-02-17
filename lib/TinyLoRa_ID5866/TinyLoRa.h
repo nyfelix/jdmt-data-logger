@@ -1,38 +1,3 @@
-/*!
- * @file TinyLoRa.h
- *
- * This is part of Adafruit's TinyLoRa library for the Arduino platform. It is
- * designed specifically to work with the Adafruit Feather 32u4 RFM95 LoRa:
- * https://www.adafruit.com/product/3078
- *
- * This library uses SPI to communicate, 4 pins (SCL, SDA, IRQ, SS)
- * are required to interface with the HopeRF RFM95/96 breakout.
- *
- * Adafruit invests time and resources providing this open source code,
- * please support Adafruit and open-source hardware by purchasing
- * products from Adafruit!
- *
- * Copyright 2015, 2016 Ideetron B.V.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Modified by Brent Rubell for Adafruit Industries.
- *
- * LGPL license, all text here must be included in any redistribution.
- *
- */
-
 #ifndef TINY_LORA_H
 #define TINY_LORA_H
 
@@ -69,10 +34,7 @@ typedef enum rfm_datarates
 } rfm_datarates_t;
 
 /** Region configuration*/
-//#define US902 ///< Used in USA, Canada and South America
-#define EU863 ///< Used in Europe
-//#define AU915 ///< Used in Australia
-//#define AS920 ///< Used in Asia
+#define EU863
 
 /* RFM Modes */
 #define MODE_SLEEP 0x00 ///<low-power mode
