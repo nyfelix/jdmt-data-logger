@@ -4,13 +4,9 @@
 #include <models.h>
 #include <logistic_regression.h>
 
-int PIN_source_MOSFET_camera_power_control = 10; // Mosfet for camera modul Power mangement
-int PIN_Camera_attached_check = 19;              //
-int camera_start_up_time = 1000;                 //time to give the camera to start up
-
 typedef uint8_t picture[60][80];
 picture sample0001;
-typedef unsigned char cut_picture[3996];
+typedef unsigned char cut_picture[nof_cells];
 cut_picture pic;
 int readdata = 0;
 int counter = 0;
@@ -49,32 +45,32 @@ uint8_t is_there_CameraModul()
 }
 
 /** Turns Camera on with the MOSFET.*/
-void CameraON()
+void camera_on()
 {
   digitalWrite(PIN_source_MOSFET_camera_power_control, LOW);
   delay(camera_start_up_time);
 }
 
 /** Turns Camera off with the MOSFET.*/
-void CameraOFF()
+void camera_off()
 {
   digitalWrite(PIN_source_MOSFET_camera_power_control, HIGH);
 }
 
 /** Let the flash up 3 times. Used after reattaching the camera modul.*/
-void CameraBlink()
+void camera_blink()
 {
-  CameraON();
+  camera_on();
   delay(1000);
-  CameraOFF();
+  camera_off();
   delay(1000);
-  CameraON();
+  camera_on();
   delay(1000);
-  CameraOFF();
+  camera_off();
   delay(1000);
-  CameraON();
+  camera_on();
   delay(1000);
-  CameraOFF();
+  camera_off();
   delay(1000);
 }
 
@@ -94,16 +90,11 @@ void cut_picture_to_size(picture &picture_to_cut)
 
 void printPicture()
 {
-  Serial.print("[");
-  for (int v = 0; v < sizeof(pic); v++)
+  for (auto index = 0; index < nof_cells; index++)
   {
-    Serial.print(pic[v]);
-    if (v != sizeof(pic) - 1)
-    {
-      Serial.print(",");
-    }
+    Serial.print(String(pic[index]) + ",");
   }
-  Serial.println("],");
+  Serial.println();
 }
 
 /** Configurates the Analog Comperator for the sampling pictures. DON'T CHANGE!
@@ -292,13 +283,14 @@ void setupCamera()
 
 float take_and_evaluate_Picture(logistic_regression &model, volatile int &acHandler)
 {
+  debugLn("take_and_evaluate_Picture");
   setupCamera();
 
   acHandler = 1;
 
   memset(sample0001, 0, sizeof(sample0001));
 
-  CameraON();
+  camera_on();
   cut_picture_to_size(sample0001);
 #ifdef PRINT_PICTURE
   printPicture();
@@ -309,6 +301,6 @@ float take_and_evaluate_Picture(logistic_regression &model, volatile int &acHand
   const auto deviceOk = model.predict(pic);
 
   AnalogRead_setup();
-  CameraOFF();
+  camera_off();
   return deviceOk;
 }
