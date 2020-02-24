@@ -7,7 +7,7 @@
 #include <TinyLoRa.h>
 #include <SPI.h>
 #include <lmic_util.h>
-#include <SI7021.h>
+#include <Adafruit_Si7021.h>
 #include <Adafruit_SleepyDog.h>
 #include <avr/pgmspace.h>
 #include "logistic_regression.h"
@@ -15,7 +15,7 @@
 
 int sleepcounter = 0;
 volatile bool sleepbit = false; //first loop without sleeping
-SI7021 envSensor;
+Adafruit_Si7021 sensor = Adafruit_Si7021();
 logistic_regression model{beta_zero, coef, nof_cells, exp(1), pow};
 volatile int acHandler{};
 TinyLoRa LoRa_jdmt_data_logger = TinyLoRa(3, 8);
@@ -65,6 +65,7 @@ void watchdogSleep(int time_s, volatile bool *sleepflag)
 
 void setup()
 {
+
   pinMode(PIN_ANALOG_COMP_1, OUTPUT);
   pinMode(PIN_ANALOG_COMP_2, OUTPUT);
 
@@ -74,15 +75,19 @@ void setup()
   pinMode(PIN_Camera_attached_check, INPUT);
   attachInterrupt(digitalPinToInterrupt(PIN_Camera_attached_check), alert, FALLING);
   Serial.begin(9600);
+  if (!sensor.begin())
+  {
+    Serial.println("Did not find Si7021 sensor!");
+    while (true)
+      ;
+  }
   camera_off();
-
   LoRa_jdmt_data_logger.setChannel(MULTI);
   LoRa_jdmt_data_logger.setDatarate(DATARATE);
   if (!LoRa_jdmt_data_logger.begin())
   {
     debugLn("Starting LoRa...Failed: Check your radio");
   }
-  envSensor.begin();
 
   camera_blink();
 }
@@ -91,7 +96,7 @@ void send_state(float device_ok, State const state)
 {
   debugLn("send_state");
   digitalWrite(LED_BUILTIN, HIGH);
-  preparePayolad(envSensor, device_ok, state);
+  preparePayolad(sensor, device_ok, state);
   LoRa_jdmt_data_logger.sendData(payload, sizeof(payload), LoRa_jdmt_data_logger.frameCounter);
   LoRa_jdmt_data_logger.frameCounter++;
   digitalWrite(LED_BUILTIN, LOW);
@@ -101,7 +106,6 @@ bool first_interrupt = true;
 
 void loop()
 {
-  debugLn("loop");
   if (is_there_CameraModul())
   {
     first_interrupt = true;

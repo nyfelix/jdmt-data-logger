@@ -4,7 +4,7 @@
 #include <TinyLoRa.h>
 #include <config.h>
 #include <camera.h>
-#include <SI7021.h>
+#include <Adafruit_Si7021.h>
 #include <lmic_util.h>
 
 enum class State : char
@@ -28,17 +28,14 @@ void mapToPayload(uint8_t index_payload, float value)
   payload[index_payload + 1] = high;
 }
 
-void preparePayolad(SI7021 &envSensor, const float deviceOk, State const state)
+void preparePayolad(Adafruit_Si7021 &sensor, const float deviceOk, State const state)
 {
-  float temperature = envSensor.getCelsiusHundredths() / 10000;
-  mapToPayload(0, temperature);
-  float rHumidity = envSensor.getHumidityPercent() / 100;
-  mapToPayload(2, rHumidity);
-  float vbat = analogRead(VBATPIN) * 0.00064453125;
-  mapToPayload(4, vbat);
+  mapToPayload(0, sensor.readTemperature() / 100);
+  mapToPayload(2, sensor.readHumidity() / 100);
+  mapToPayload(4, analogRead(VBATPIN) * 0.00064453125);
   mapToPayload(6, deviceOk);
   payload[8] = static_cast<char>(state);
-  mapToPayload(9, Device_Position_latitude / 90);
-  mapToPayload(11, Device_Position_longitude / 180);
+  mapToPayload(9, Device_Position_latitude);
+  mapToPayload(11, Device_Position_longitude);
   payload[13] = DEVICE_NR;
 }

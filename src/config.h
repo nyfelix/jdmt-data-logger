@@ -46,8 +46,8 @@
     0x26, 0x01, 0x10, 0xCE \
   }
 
-#define Device_Position_latitude 47.223234f
-#define Device_Position_longitude 8.817984f
+#define Device_Position_latitude 47.223234f / 90
+#define Device_Position_longitude 8.817984f / 180
 
 #define NWKSKEY2                                                                                   \
   {                                                                                                \
@@ -79,8 +79,8 @@
     0x26, 0x01, 0x17, 0x02 \
   }
 
-#define Device_Position_latitude 47.365292f
-#define Device_Position_longitude 8.785678f
+#define Device_Position_latitude 47.365292f / 90
+#define Device_Position_longitude 8.785678f / 180
 
 #endif
 
@@ -100,7 +100,7 @@
     0x26, 0x01, 0x11, 0x3A \
   }
 
-#define Device_Position_latitude 47.533163f
-#define Device_Position_longitude 8.731643f
+#define Device_Position_latitude 47.533163f / 90
+#define Device_Position_longitude 8.731643f / 180
 
 #endif
