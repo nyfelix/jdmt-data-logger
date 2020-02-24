@@ -48,7 +48,6 @@ void alert()
 
 void watchdogSleep(int time_s, volatile bool *sleepflag)
 {
-
   double sleep_rep = time_s / 30;
   while (*sleepflag)
   {
@@ -65,7 +64,6 @@ void watchdogSleep(int time_s, volatile bool *sleepflag)
 
 void setup()
 {
-
   pinMode(PIN_ANALOG_COMP_1, OUTPUT);
   pinMode(PIN_ANALOG_COMP_2, OUTPUT);
 
