@@ -1,33 +1,19 @@
-/*!  \name File usage
- * In this File the functions for camera functions are stored.
- */
-
 #pragma once
-/***Here are the functions needed for using the camera with ntsc***/
 #include <Arduino.h>
 #include <Debug.h>
-#include <global_variable.h>
 #include <models.h>
-/************** VARIABLES FOR CAMERAMODUL **********/
-/************Camera Modul Pins *****************************/
-/*!  \name Variables
- * Code from Rudolf Kamber.
- */
-int PIN_source_MOSFET_camera_power_control = 10; // Mosfet for camera modul Power mangement
-int PIN_Camera_attached_check = 19;              //
-
-int camera_start_up_time = 1000; //time to give the camera to start up
+#include <logistic_regression.h>
 
 typedef uint8_t picture[60][80];
 picture sample0001;
-
+typedef unsigned char cut_picture[nof_cells];
+cut_picture pic;
 int readdata = 0;
 int counter = 0;
 double samples = 8;
 byte framestart[8] = {0}; // the frametrigger value is stored here
 int framestarttot = 0;
 int frametreshold = 150; // 150
-// int rows = 60;  // rows from above array
 
 int done = 0;
 int sample0;
@@ -48,8 +34,6 @@ volatile int a;
 volatile int rows = 60;    // rows from above array
 volatile int columns = 80; // colums from above
 
-//************************************************************************************
-
 /** Checks if ther is a camera modul attached.*/
 uint8_t is_there_CameraModul()
 {
@@ -61,123 +45,56 @@ uint8_t is_there_CameraModul()
 }
 
 /** Turns Camera on with the MOSFET.*/
-void CameraON()
+void camera_on()
 {
   digitalWrite(PIN_source_MOSFET_camera_power_control, LOW);
   delay(camera_start_up_time);
 }
 
 /** Turns Camera off with the MOSFET.*/
-void CameraOFF()
+void camera_off()
 {
   digitalWrite(PIN_source_MOSFET_camera_power_control, HIGH);
 }
 
 /** Let the flash up 3 times. Used after reattaching the camera modul.*/
-void CameraBlink()
+void camera_blink()
 {
-  CameraON();
+  camera_on();
   delay(1000);
-  CameraOFF();
+  camera_off();
   delay(1000);
-  CameraON();
+  camera_on();
   delay(1000);
-  CameraOFF();
+  camera_off();
   delay(1000);
-  CameraON();
+  camera_on();
   delay(1000);
-  CameraOFF();
+  camera_off();
   delay(1000);
 }
 
-/** Cuts off the rim of the picture and safes it in the global cut_picture array.*/
-void cut_picture_to_size(picture &picture_to_cut, int row_start, int row_end, int column_start, int column_end)
+void cut_picture_to_size(picture &picture_to_cut)
 {
-  AC->INTENCLR.bit.COMP0 = 0x1; //Disable interrupt
   int i = 0;
-
-  for (int column_index = column_start; column_index < column_end; column_index++)
-  {
-    for (int row_index = row_start; row_index < row_end; row_index++)
-    {
-      pic[i] = picture_to_cut[row_index][column_index];
-      i++;
-    }
-  }
-  AC->INTENSET.bit.COMP0 = 0x1; // Enable interrupt
-}
-
-/** A debug function that is used in Sample mode.*/
-void print_cut_Picture_array()
-{
-#ifdef SAMPLE_MODE
-/*
-    Serial.print("Sample Nr.: ");
-    Serial.println(picture_counter);
-    picture_counter++;
-    */
-#endif
-  Serial.print("[");
-  for (int v = 0; v < sizeof(pic); v++)
-  {
-    Serial.print(pic[v]);
-    if (v != sizeof(pic) - 1)
-    {
-      Serial.print(", ");
-    }
-  }
-  Serial.print("]");
-}
-
-/** A debug function that is currently not used in Sample mode.*/
-void print_whole_Picture()
-{
-  AC->INTENCLR.bit.COMP0 = 0x1; //Disable interrupt
-  for (int v = 0; v < (rows); v++)
-  {
-    for (int u = 0; u < (columns); u++)
-    {
-      Serial.print(sample0001[v][u]);
-      Serial.print("\t");
-      delay(1); // delay in between reads for stability
-    }
-    Serial.println();
-  }
-  Serial.println();
-  AC->INTENSET.bit.COMP0 = 0x1; // Enable interrupt
-  debugLn("end printing");
-}
-
-/** A debug function that is currently not used in Sample mode.*/
-void printPicture()
-{
-  AC->INTENCLR.bit.COMP0 = 0x1; //Disable interrupt
   for (int v = 4; v < (rows - 2); v++)
   {
     for (int u = 6; u < (columns); u++)
     {
-      Serial.print(sample0001[v][u]);
-      Serial.print("\t");
+      pic[i] = picture_to_cut[v][u];
+      i++;
       delay(1); // delay in between reads for stability
     }
-    Serial.println();
+  }
+}
+
+void printPicture()
+{
+  for (auto index = 0; index < nof_cells; index++)
+  {
+    Serial.print(String(pic[index]) + ",");
   }
   Serial.println();
-  /*Disable Array print
-    Serial.print("const uint8_t sample0001_map[] = {"); 
-    for (int v = 4; v <(rows-2); v++) {
-      for (int u = 6; u < (columns); u++) {
-        Serial.print(sample0001[v][u]);
-        Serial.print(",");
-        delay(1);        // delay in between reads for stability 
-        }
-       }
-       Serial.print("}");  
-     Serial.println();
-     */
-
-  AC->INTENSET.bit.COMP0 = 0x1; // Enable interrupt
-  debugLn("end printing");
 }
 
 /** Configurates the Analog Comperator for the sampling pictures. DON'T CHANGE!
@@ -208,135 +125,14 @@ void AC_Handler_Camera()
   {
     if (skip == 0)
     {
-      //    for (int y = 0; y < 20; y++) {
-      //        __asm__("nop\n\t");
-      //     }
-
-      sqrt(100);
-
-      switch (nops)
-      {
-      case 0:
-        break; //exit loop
-      case 1:
-        __asm__("nop\n"); //waste one cycle
+      for (int n = 0; n < ((2 * nops) + 3); n++)
+      { // 1 nop = 0.1us, 11nops = 1.13us additional shift each run  + 5us offset
         __asm__("nop\n");
-        break;
-
-      case 2:
         __asm__("nop\n");
         __asm__("nop\n");
         __asm__("nop\n");
         __asm__("nop\n");
-        break;
-
-      case 3:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        break;
-
-      case 4:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        break;
-
-      case 5:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        break;
-
-      case 6:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        break;
-
-      case 7:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-
-        break;
-      case 8:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-
-        break;
-      case 9:
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-        __asm__("nop\n");
-
-        break;
       }
-
       for (int i = 0; i < (samples); i++)
       { // take 8 samples, equally spaced appr 5.67 us (as fast as it can go)
         while (!(ADC->INTFLAG.bit.RESRDY))
@@ -388,7 +184,7 @@ void AnalogRead_setup()
 }
 
 /** Configurates the ADC to camer settings. After this function gets called, the ADC writes the NTSC values directli in the sample0001 matrix. DON'T CHANGE! */
-void Camera_setup()
+void setupCamera()
 {
   // Config AC Clock
   // PM->APBCMASK.bit.AC = 1;    // this does not work, don't know why
@@ -483,33 +279,28 @@ void Camera_setup()
   AC->INTENSET.bit.COMP0 = 0x1;
   AC->INTFLAG.bit.COMP0 = 1;
   NVIC_EnableIRQ(AC_IRQn);
-
-  /*************************************************************************************************************/
 }
 
-/** Functions starts camera, takes a picuter, shut down the camera and evaluate the picture. Value get written in LiklihoodDeviceOk.*/
-void take_and_evaluate_Picture()
+float take_and_evaluate_Picture(logistic_regression &model, volatile int &acHandler)
 {
-  Camera_setup();
+  debugLn("take_and_evaluate_Picture");
+  setupCamera();
 
-  debugLn("Changing setup Handler");
-  ACSetupHandler = 1; // Changing to Cam mode
+  acHandler = 1;
 
-  memset(sample0001, 0, sizeof(sample0001)); // fill the array with 0 so in case the camera is broken it will be recognized
+  memset(sample0001, 0, sizeof(sample0001));
 
-  CameraON(); // start up camera
-  debugLn("cam on");
-
+  camera_on();
+  cut_picture_to_size(sample0001);
 #ifdef PRINT_PICTURE
-  // print_whole_Picture();
   printPicture();
 #endif
 
-  ACSetupHandler = 0; // Changing to default mode
-  cut_picture_to_size(sample0001, 6, 60, 4, 78);
-  LikelihoodDeviceOk = model->predict(pic); //evaluate the picture in over the logistic_regression model
+  acHandler = 0;
+
+  const auto deviceOk = model.predict(pic);
 
   AnalogRead_setup();
-  CameraOFF();
-  debugLn("cam off");
+  camera_off();
+  return deviceOk;
 }

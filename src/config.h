@@ -1,91 +1,18 @@
-/*!  \name 
-This file is for setting up the embedded device mode and tune the settings. The setup is driven by precompile comands.
-*/
-
-/** \file config.h
- * A brief file description.
- * A more elaborated file description.
- */
-
 #pragma once
-/************************************************
- *  Precompile setting blblabla
- ***********************************************/
-
-/*************************** *******PRECOMPILE SETTINGS *******************************/
-//#define DEBUG
-#define DEEPSLEEP
-//#define NO_EMERGENCY// programm will not change to emergency state even the camermodul was removed
-//#define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
-//#define TEST_BUTTON // Activates the Test button. Not fully developt!
-//#define SERIAL_BEGIN // Serial beginn
-//#define TEST_AND_SAMPLES
-
+#define DEBUG
+// #define PRINT_PICTURE // Prints the picture in a uint8_t array in the console
 #define DEVICE_TYPE 1 //0== ZOLL AED 3, 1== CU_S, 2== ZOLL AED PLUS, 3== cu st1 auto
 #define DEVICE_NR 2   // Handling the diffrent devices
 #define DATARATE SF12BW125
 #define SENDING_PERIOD 1800 // Seconds
 
-/**
- *\def DEVICE_TYPE
-    Specify the AED device type. \n
-    0-> ZOLL AED 3\n
-    1-> CU_ST1 Auto \n
-    2->ZOll AED PLUS \n
-  \def DEVICE_NR
-    Enter the serial number of the logger device. This number is essential for handling the device fleet. Its important that there aren't two devices with the same number, 
-    so the TTN can distinguish between the devices.
-  \def DATARATE
-    The DATARATE sets the spreading factor and the bandwith of the radio transmition. If the transmission isn't stable, encreasing the spreading factor can help. But higher 
-    spreading factor also means lower datarates and therefore energy consumption is higher. Its possibel to set the Datarate from the lowes spreading factor of SF7BW125 to the
-    highest of SF12BW125. \
-    ATTENTION: If the SENDING_PERIOD is low and the spreading factor hight. The TTN gets overloaded. For more information please read: 
-    https://www.thethingsnetwork.org/forum/t/limitations-data-rate-packet-size-30-seconds-uplink-and-10-messages-downlink-per-day-fair-access-policy/1300 
-  \def SENDING_PERIOD
-    The SENDING_PERIOD defines the frequency in which the embedded device take and evaluate a picture and send the resulting data over LoRa. The value is in second and should
-    be a manifold of 30.\n
-    Due to clockspeed differences the frequency in DEEPSLEEP mode is higher than expected.
- 
-  \def DEBUG
-    Setting DEBUG, will enable diffrent outputs, like current state and data to send, over the console. The serial communication is set to 9600 Baud.
-    If DEEPSLEEP is also enabled, the communication will break up, when the device enters the sleep mode. 
-  \def APPSKEY
-    This 16-byte key is used for the LoRa communication, so that the TTN can identifier to which application the data belongs.
-  \def DEEPSLEEP
-    If DEEPSLEEP is defined, the device will enter deepsleep instead of a dealy. 
-  \def NO_EMERGENCY
-    Is NO_EMERGENCY is defined, the state machine in jdmt.apb-tiny.ino will not enter emergency state if the cameramodul get disconnected.
-  \def PRINT_PICTURE
-    ... no developt
-    In this mode the device
-  \def TEST_BUTTON
-    ... not testet
-  \def SEND_PICTURES
-    ... not developt
-  \def SERIAL_BEGIN 
-    If SERIAL_BEGIN is defined the Serial begin in the device setup is activated.
+#define PIN_ANALOG_COMP_1 22
+#define PIN_ANALOG_COMP_2 13
+#define PIN_source_MOSFET_camera_power_control 10
+#define PIN_Camera_attached_check 19
+#define camera_start_up_time 1000
+#define nof_cells 3996
 
-*/
-
-#if DOXYGEN
-#ifndef DEBUG
-#define DEBUG
-#endif
-#ifndef DEEPSLEEP
-#define DEEPSLEEP
-#endif
-#ifndef NO_EMERGENCY
-#define NO_EMERGENCY
-#endif
-#ifndef PRINT_PICTURE
-#define PRINT_PICTURE
-#endif
-#ifndef TEST_BUTTON
-#define TEST_BUTTON
-#endif
-#ifndef SERIAL_BEGIN
-#define SERIAL_BEGIN
-#endif
 #ifndef APPSKEY
 #define APPSKEY
 #endif
@@ -94,7 +21,6 @@ This file is for setting up the embedded device mode and tune the settings. The 
 #endif
 #ifndef DEVADDR
 #define DEVADDR
-#endif
 #endif
 
 #ifdef FEATHER32U4
@@ -120,8 +46,8 @@ This file is for setting up the embedded device mode and tune the settings. The 
     0x26, 0x01, 0x10, 0xCE \
   }
 
-#define Device_Position_latitude 47.223234f
-#define Device_Position_longitude 8.817984f
+#define Device_Position_latitude 47.223234f / 90
+#define Device_Position_longitude 8.817984f / 180
 
 #define NWKSKEY2                                                                                   \
   {                                                                                                \
@@ -138,7 +64,6 @@ This file is for setting up the embedded device mode and tune the settings. The 
 
 #endif
 
-// Standort Socar Pfäffikon (outdoor)
 #if DEVICE_NR == 2
 
 #define NWKSKEY                                                                                    \
@@ -154,8 +79,8 @@ This file is for setting up the embedded device mode and tune the settings. The 
     0x26, 0x01, 0x17, 0x02 \
   }
 
-#define Device_Position_latitude 47.365292f
-#define Device_Position_longitude 8.785678f
+#define Device_Position_latitude 47.365292f / 90
+#define Device_Position_longitude 8.785678f / 180
 
 #endif
 
@@ -175,7 +100,7 @@ This file is for setting up the embedded device mode and tune the settings. The 
     0x26, 0x01, 0x11, 0x3A \
   }
 
-#define Device_Position_latitude 47.533163f
-#define Device_Position_longitude 8.731643f
+#define Device_Position_latitude 47.533163f / 90
+#define Device_Position_longitude 8.731643f / 180
 
 #endif
